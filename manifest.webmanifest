@@ -1,0 +1,17 @@
+{
+  "name": "LinguaFlip",
+  "short_name": "LinguaFlip",
+  "description": "Приложение флеш-карточек для изучения английского языка",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4ede2",
+  "theme_color": "#c2410c",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
