@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.linguaflip5959.twa",
+        "sha256_cert_fingerprints": ["9A:70:E9:AF:15:B3:63:A6:F4:D0:EA:AE:44:A0:AE:31:73:86:A3:E3:22:48:52:1E:A5:17:33:F6:85:31:AB:63"]
+      }
+    }]   
