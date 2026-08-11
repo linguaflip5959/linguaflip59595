@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LinguaFlip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4ede2;
+    --bg2:#efe6d6;
+    --paper:#fbf6ec;
+    --ink:#1f1a14;
+    --ink-soft:#4a4036;
+    --muted:#8a7d6c;
+    --line:#d9cdb6;
+    --accent:#c2410c;
+    --accent-soft:#f3d9c4;
+    --ok:#3f6b3a;
+    --err:#9b2c2c;
+    --shadow:0 18px 40px -18px rgba(60,40,20,.35), 0 4px 10px -4px rgba(60,40,20,.15);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:'DM Sans', system-ui, sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #f7e8d4 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #ecddc6 0%, transparent 55%),
+      var(--bg);
+    min-height:100dvh;
+    overflow-x:hidden;
+    padding-bottom: 110px;
+  }
+  /* Header */
+  header{
+    padding:22px 20px 8px;
+    display:flex; align-items:center; justify-content:space-between;
+    max-width:680px; margin:0 auto;
+  }
+  .brand{display:flex; align-items:baseline; gap:8px;}
+  .brand .mark{
+    width:26px; height:26px; border-radius:7px;
+    background:linear-gradient(135deg, var(--accent), #e57238);
+    display:inline-grid; place-items:center;
+    color:#fff; font-weight:800; font-family:'Fraunces', serif;
+    box-shadow:0 4px 10px -3px rgba(194,65,12,.5);
+    transform:translateY(2px);
+  }
+  .brand h1{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:26px;
+    letter-spacing:-.5px;
+    margin:0;
+  }
+  .brand h1 em{font-style:italic; color:var(--accent); font-weight:600;}
+  .counter{
+    font-size:12px; color:var(--muted);
+    background:var(--paper);
+    padding:6px 10px; border-radius:999px;
+    border:1px solid var(--line);
+    font-weight:500;
+  }
+
+  /* Main area */
+  main{
+    max-width:680px; margin:0 auto;
+    padding:8px 20px 0;
+  }
+
+  /* Flashcards view */
+  .stage{
+    position:relative;
+    perspective:1600px;
+    min-height:380px;
+    display:grid; place-items:center;
+    padding:8px 0 16px;
+  }
+  .card{
+    width:100%;
+    aspect-ratio: 3/4.1;
+    max-width:380px;
+    position:relative;
+    transform-style:preserve-3d;
+    transition:transform .7s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+  .face{
+    position:absolute; inset:0;
+    border-radius:24px;
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+    padding:32px 26px;
+    display:flex; flex-direction:column;
+    box-shadow:var(--shadow);
+    border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .face.front{
+    background:
+      radial-gradient(120% 60% at 50% 0%, #fffaf1 0%, var(--paper) 60%);
+    justify-content:space-between;
+  }
+  .face.back{
+    background:
+      radial-gradient(120% 60% at 50% 0%, #2a2118 0%, #1c1610 70%);
+    color:#f6ead8;
+    transform:rotateY(180deg);
+    border-color:#000;
+  }
+  .face.back::before{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(140% 80% at 100% 0%, rgba(229,114,56,.18) 0%, transparent 50%),
+      radial-gradient(120% 60% at 0% 100%, rgba(229,114,56,.10) 0%, transparent 50%);
+    pointer-events:none;
+  }
+  .card-tag{
+    font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--muted); font-weight:600;
+  }
+  .back .card-tag{color:#c9a987;}
+  .word{
+    font-family:'Fraunces', serif;
+    font-weight:800;
+    font-size:clamp(34px, 9vw, 48px);
+    line-height:1;
+    letter-spacing:-1px;
+    margin:8px 0 6px;
+  }
+  .transcription{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-size:18px;
+    color:var(--ink-soft);
+    font-weight:500;
+  }
+  .hint{
+    margin-top:auto;
+    font-size:12px; color:var(--muted);
+    display:flex; align-items:center; gap:8px;
+    font-weight:500;
+  }
+  .hint .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:var(--accent);
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:.3; transform:scale(.8);}
+    50%{opacity:1; transform:scale(1.2);}
+  }
+  .back .translation{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:28px;
+    line-height:1.1;
+    margin:6px 0 18px;
+    color:#fff;
+  }
+  .example-block{
+    border-top:1px solid rgba(255,255,255,.12);
+    padding-top:16px;
+    margin-top:auto;
+    position:relative;
+  }
+  .example-en{
+    font-size:15px; line-height:1.45;
+    color:#f6ead8; font-weight:500;
+    font-style:italic;
+  }
+  .example-en b{color:#ffb27a; font-style:normal; font-weight:700;}
+  .example-ru{
+    font-size:13px; line-height:1.45;
+    color:#a89578; margin-top:6px;
+  }
+
+  /* Card nav */
+  .card-nav{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; margin-top:8px;
+  }
+  .nav-btn{
+    flex:0 0 auto;
+    width:46px; height:46px; border-radius:14px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-size:20px;
+    display:grid; place-items:center;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .nav-btn:active{transform:scale(.92); background:var(--accent-soft);}
+  .nav-btn:disabled{opacity:.35; cursor:not-allowed;}
+  .progress{
+    flex:1; height:6px; background:var(--bg2); border-radius:999px; overflow:hidden;
+  }
+  .progress-bar{
+    height:100%; background:linear-gradient(90deg, var(--accent), #e57238);
+    width:0%; transition:width .35s ease;
+    border-radius:999px;
+  }
+  .progress-label{
+    font-size:11px; color:var(--muted); text-align:center;
+    margin-top:6px; font-weight:500;
+  }
+
+  /* Table view */
+  .table-wrap{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .table-head{
+    display:flex; flex-direction:column; gap:12px;
+    margin-bottom:12px;
+  }
+
+  /* Table Type Dropdown */
+  .table-type-row{
+    display:flex; align-items:center; gap:10px;
+  }
+  .table-type-row label{
+    font-size:12px; color:var(--muted); font-weight:600;
+    letter-spacing:.05em; text-transform:uppercase;
+  }
+  .table-type-row select{
+    flex:1;
+    appearance:none; -webkit-appearance:none;
+    background:var(--bg2) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%231f1a14' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>") no-repeat right 12px center;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 32px 10px 12px;
+    border-radius:10px;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:16px;
+    cursor:pointer;
+  }
+  .table-type-row select option[disabled] { color: #aaa; }
+
+  /* Verb Chips */
+  .verb-chips-row{
+    margin: 0 -14px;
+    padding: 0 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .verb-chips-row::-webkit-scrollbar { display: none; }
+  .verb-chips{
+    display: flex;
+    gap: 8px;
+    padding: 2px;
+  }
+  .verb-chip{
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg2);
+    color: var(--ink-soft);
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all .25s ease;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .verb-chip small{
+    font-size: 10px;
+    opacity: .7;
+    font-family: 'DM Sans';
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .verb-chip.active{
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 10px -3px rgba(194,65,12,.45);
+  }
+
+  .modes{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
+    background:var(--bg2);
+    padding:4px; border-radius:12px;
+  }
+  .mode-btn{
+    border:none; background:transparent;
+    padding:9px 6px; border-radius:9px;
+    font-family:'DM Sans', sans-serif;
+    font-size:12px; font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .25s ease;
+  }
+  .mode-btn.active{
+    background:var(--paper);
+    color:var(--accent);
+    box-shadow:0 2px 6px -2px rgba(60,40,20,.2);
+  }
+
+  .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table.verbs{
+    border-collapse:separate; border-spacing:0;
+    width:100%; min-width:560px;
+    font-size:13px;
+  }
+  table.verbs th, table.verbs td{
+    border-bottom:1px solid var(--line);
+    border-right:1px solid var(--line);
+    padding:0;
+    text-align:center;
+    vertical-align:middle;
+  }
+  table.verbs th:last-child, table.verbs td:last-child{border-right:none;}
+  table.verbs thead th{
+    background:var(--bg2);
+    color:var(--ink-soft);
+    font-weight:600;
+    font-size:11px;
+    letter-spacing:.04em;
+    padding:10px 6px;
+    position:sticky; top:0;
+  }
+  table.verbs tbody th{
+    background:var(--bg2);
+    color:var(--ink-soft);
+    font-weight:600;
+    padding:12px 8px;
+    font-size:13px;
+    text-align:left;
+    position:sticky; left:0;
+  }
+  table.verbs td{
+    height:54px;
+    min-width:90px;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .cell{
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    padding:6px 4px;
+    cursor:pointer;
+    transition:background .15s ease;
+    position:relative;
+  }
+  /* View mode */
+  .mode-view .cell:hover{background:var(--accent-soft);}
+  /* Self-check mode */
+  .mode-self .cell .text{
+    visibility:hidden;
+  }
+  .mode-self .cell.revealed .text{visibility:visible;}
+  .mode-self .cell.revealed{background:#fdf0e0;}
+  .mode-self .cell:not(.revealed)::after{
+    content:"•••"; color:var(--muted); font-family:'DM Sans'; font-weight:700;
+    letter-spacing:2px;
+  }
+  .mode-self .cell.revealed::after{content:none;}
+  .mode-self .cell:not(.revealed):hover{background:var(--bg2);}
+
+  /* Input mode */
+  .input-panel{
+    background:linear-gradient(135deg, #2a2118, #1c1610);
+    color:#f6ead8;
+    border-radius:14px;
+    padding:16px 18px;
+    margin-bottom:12px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .input-coord{
+    font-family:'Fraunces', serif;
+    font-size:18px; font-weight:600;
+    color:#ffb27a;
+  }
+  .input-coord small{
+    display:block; color:#a89578; font-size:11px;
+    font-family:'DM Sans'; font-weight:500;
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px;
+  }
+  .input-row{display:flex; gap:8px;}
+  .input-row input{
+    flex:1;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    color:#fff;
+    padding:11px 14px;
+    border-radius:10px;
+    font-family:'Fraunces', serif;
+    font-size:16px; font-weight:600;
+    outline:none;
+  }
+  .input-row input:focus{border-color:#ffb27a; background:rgba(255,255,255,.12);}
+  .input-row input::placeholder{color:#7a6a55;}
+  .input-row button{
+    background:var(--accent);
+    color:#fff; border:none;
+    padding:0 18px; border-radius:10px;
+    font-weight:700; font-size:14px;
+    cursor:pointer;
+    transition:transform .15s ease, background .2s ease;
+  }
+  .input-row button:active{transform:scale(.95);}
+  .feedback{
+    font-size:13px; font-weight:600;
+    min-height:18px;
+    transition:opacity .2s ease;
+  }
+  .feedback.ok{color:#7cd66f;}
+  .feedback.err{color:#ff8a6f;}
+  .skip-btn{
+    background:transparent; border:none; color:#a89578;
+    font-size:12px; cursor:pointer; text-decoration:underline;
+    align-self:flex-start; padding:0;
+  }
+  .mode-input table.verbs td{cursor:default;}
+
+  .table-hint{
+    font-size:11px; color:var(--muted);
+    margin-top:10px; text-align:center;
+  }
+
+  /* Bottom nav */
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0;
+    background:rgba(251,246,236,.92);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+    z-index:50;
+  }
+  .bottom-nav-inner{
+    max-width:680px; margin:0 auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+    background:var(--bg2);
+    padding:5px; border-radius:16px;
+  }
+  .nav-tab{
+    border:none; background:transparent;
+    padding:13px 10px; border-radius:11px;
+    font-family:'DM Sans', sans-serif;
+    font-size:14px; font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all .25s ease;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .nav-tab .icon{
+    width:16px; height:16px;
+    display:inline-block;
+  }
+  .nav-tab.active{
+    background:var(--ink);
+    color:var(--paper);
+    box-shadow:0 4px 12px -4px rgba(31,26,20,.5);
+  }
+
+  /* Views toggle */
+  .view{display:none; animation:fadeIn .35s ease;}
+  .view.active{display:block;}
+  @keyframes fadeIn{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:130px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper);
+    padding:10px 18px; border-radius:999px;
+    font-size:13px; font-weight:500;
+    opacity:0; pointer-events:none;
+    transition:all .3s ease;
+    z-index:100;
+    box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  @media (max-width:380px){
+    .word{font-size:34px;}
+    .face{padding:26px 22px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mark">L</span>
+    <h1>Lingua<em>Flip</em></h1>
+  </div>
+  <div class="counter" id="counter">1 / 10</div>
+</header>
+
+<main>
+  <!-- FLASHCARDS VIEW -->
+  <section class="view active" id="view-cards">
+    <div class="stage">
+      <div class="card" id="card">
+        <div class="face front">
+          <div>
+            <div class="card-tag">Слово</div>
+            <div class="word" id="card-word">—</div>
+            <div class="transcription" id="card-trans">—</div>
+          </div>
+          <div class="hint"><span class="dot"></span> нажми, чтобы перевернуть</div>
+        </div>
+        <div class="face back">
+          <div>
+            <div class="card-tag">Перевод</div>
+            <div class="translation" id="card-translation">—</div>
+          </div>
+          <div class="example-block">
+            <div class="example-en" id="card-example">—</div>
+            <div class="example-ru" id="card-example-ru">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-nav">
+      <button class="nav-btn" id="prev-btn" aria-label="Назад">‹</button>
+      <div class="progress"><div class="progress-bar" id="progress-bar"></div></div>
+      <button class="nav-btn" id="next-btn" aria-label="Вперёд">›</button>
+    </div>
+    <div class="progress-label" id="progress-label">Карточка 1 из 10</div>
+  </section>
+
+  <!-- TABLE VIEW -->
+  <section class="view" id="view-table">
+    <div class="table-wrap" id="table-wrap">
+      <div class="table-head">
+        <div class="table-type-row">
+          <label for="table-type">Тип</label>
+          <select id="table-type">
+            <option value="verbs">Глаголы</option>
+            <option value="pronouns" disabled>Местоимения</option>
+            <option value="adjectives" disabled>Прилагательные</option>
+            <option value="numerals" disabled>Числительные</option>
+          </select>
+        </div>
+        <div class="verb-chips-row">
+          <div class="verb-chips" id="verb-chips"></div>
+        </div>
+        <div class="modes">
+          <button class="mode-btn active" data-mode="view">Смотреть</button>
+          <button class="mode-btn" data-mode="self">Самопроверка</button>
+          <button class="mode-btn" data-mode="input">Ввод</button>
+        </div>
+      </div>
+
+      <div class="input-panel" id="input-panel" style="display:none;">
+        <div class="input-coord">
+          <small>Введите форму</small>
+          <span id="input-coord-text">—</span>
+        </div>
+        <div class="input-row">
+          <input type="text" id="answer-input" placeholder="форма глагола…" autocomplete="off" autocapitalize="off" spellcheck="false">
+          <button id="check-btn">Проверить</button>
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <button class="skip-btn" id="skip-btn">пропустить →</button>
+      </div>
+
+      <div class="table-scroll">
+        <table class="verbs mode-view" id="verbs-table"></table>
+      </div>
+      <div class="table-hint" id="table-hint">Нажми на ячейку, чтобы услышать произношение</div>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="nav-tab active" data-view="cards">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="14" height="16" rx="2"/><path d="M8 3v2M16 3v2"/></svg>
+      Карточки
+    </button>
+    <button class="nav-tab" data-view="table">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M9 5v14"/></svg>
+      Таблица
+    </button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===== ДАННЫЕ КАРТОЧЕК ===== */
+const cards = [
+  { word:"acquire", transcription:"[əˈkwaɪə]", translation:"приобретать", example:"She <b>acquired</b> new skills quickly.", exampleRu:"Она быстро приобрела новые навыки." },
+  { word:"endeavor", transcription:"[ɪnˈdevə]", translation:"стремиться, попытка", example:"We <b>endeavored</b> to finish on time.", exampleRu:"Мы стремились закончить вовремя." },
+  { word:"persevere", transcription:"[ˌpɜːsɪˈvɪə]", translation:"упорствовать", example:"He <b>persevered</b> despite the challenges.", exampleRu:"Он упорствовал, несмотря на трудности." },
+  { word:"diligent", transcription:"[ˈdɪlɪdʒənt]", translation:"усердный", example:"She is a <b>diligent</b> student.", exampleRu:"Она усердная студентка." },
+  { word:"vivid", transcription:"[ˈvɪvɪd]", translation:"яркий, живой", example:"I have a <b>vivid</b> memory of that day.", exampleRu:"У меня яркое воспоминание о том дне." },
+  { word:"scarce", transcription:"[skeəs]", translation:"редкий, недостаточный", example:"Clean water became <b>scarce</b>.", exampleRu:"Чистая вода стала редкостью." },
+  { word:"reluctant", transcription:"[rɪˈlʌktənt]", translation:"неохотный", example:"He was <b>reluctant</b> to leave.", exampleRu:"Он неохотно уходил." },
+  { word:"thrive", transcription:"[θraɪv]", translation:"процветать", example:"Plants <b>thrive</b> in sunlight.", exampleRu:"Растения процветают на солнце." },
+  { word:"compel", transcription:"[kəmˈpel]", translation:"заставлять", example:"Nothing can <b>compel</b> me to lie.", exampleRu:"Ничто не заставит меня лгать." },
+  { word:"subtle", transcription:"[ˈsʌtl]", translation:"тонкий, едва уловимый", example:"There is a <b>subtle</b> difference.", exampleRu:"Есть тонкая разница." },
+  { word:"ponder", transcription:"[ˈpɒndə]", translation:"размышлять", example:"She <b>pondered</b> the question silently.", exampleRu:"Она молча размышляла над вопросом." }
+];
+
+/* ===== ДАННЫЕ ГЛАГОЛОВ ===== */
+const pronouns = [
+  { key:"I",        label:"I" },
+  { key:"you",      label:"you" },
+  { key:"he/she",   label:"he / she" },
+  { key:"we",       label:"we" },
+  { key:"they",     label:"they" }
+];
+
+const tenses = [
+  { key:"ps",  label:"Present Simple" },
+  { key:"pas", label:"Past Simple" },
+  { key:"fs",  label:"Future Simple" },
+  { key:"pc",  label:"Present Continuous" },
+  { key:"pp",  label:"Present Perfect" }
+];
+
+const verbs = {
+  work:  { base:"work",  past:"worked",  participle:"worked",  ing:"working",  regular:true,  thirdSingular:"works" },
+  go:    { base:"go",    past:"went",    participle:"gone",    ing:"going",    regular:false, thirdSingular:"goes" },
+  speak: { base:"speak", past:"spoke",   participle:"spoken",  ing:"speaking", regular:false, thirdSingular:"speaks" }
+};
+
+/* Построение формы глагола для местоимения и времени */
+function buildForm(verb, pronKey, tenseKey){
+  const v = verbs[verb];
+  const isThird = (pronKey === "he/she");
+  switch(tenseKey){
+    case "ps":
+      return isThird ? v.thirdSingular : v.base;
+    case "pas":
+      return v.past;
+    case "fs":
+      return "will " + v.base;
+    case "pc": {
+      const aux = (pronKey === "I") ? "am" : (isThird ? "is" : "are");
+      return aux + " " + v.ing;
+    }
+    case "pp": {
+      const aux = isThird ? "has" : "have";
+      return aux + " " + v.participle;
+    }
+  }
+  return "";
+}
+
+/* ===== Web Speech API ===== */
+let voices = [];
+function loadVoices(){
+  voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+}
+if(window.speechSynthesis){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+function speak(text){
+  if(!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  u.rate = 0.92;
+  u.pitch = 1;
+  const enVoice = voices.find(v => /en[-_]US/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang));
+  if(enVoice) u.voice = enVoice;
+  window.speechSynthesis.speak(u);
+}
+
+/* ===== Toast ===== */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 1800);
+}
+
+/* ===== FLASHCARDS LOGIC ===== */
+const cardEl = document.getElementById('card');
+let cardIdx = 0;
+
+function renderCard(){
+  const c = cards[cardIdx];
+  document.getElementById('card-word').textContent = c.word;
+  document.getElementById('card-trans').textContent = c.transcription;
+  document.getElementById('card-translation').textContent = c.translation;
+  document.getElementById('card-example').innerHTML = c.example;
+  document.getElementById('card-example-ru').textContent = c.exampleRu;
+  document.getElementById('counter').textContent = (cardIdx+1) + " / " + cards.length;
+  document.getElementById('progress-label').textContent = "Карточка " + (cardIdx+1) + " из " + cards.length;
+  const pct = ((cardIdx+1)/cards.length)*100;
+  document.getElementById('progress-bar').style.width = pct + "%";
+  document.getElementById('prev-btn').disabled = (cardIdx === 0);
+  document.getElementById('next-btn').disabled = (cardIdx === cards.length-1);
+  cardEl.classList.remove('flipped');
+}
+
+cardEl.addEventListener('click', ()=>{
+  cardEl.classList.toggle('flipped');
+  speak(cards[cardIdx].word);
+});
+
+document.getElementById('prev-btn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  if(cardIdx > 0){ cardIdx--; renderCard(); }
+});
+document.getElementById('next-btn').addEventListener('click', (e)=>{
+  e.stopPropagation();
+  if(cardIdx < cards.length-1){ cardIdx++; renderCard(); }
+});
+
+let touchStartX = 0;
+cardEl.addEventListener('touchstart', (e)=>{ touchStartX = e.touches[0].clientX; }, {passive:true});
+cardEl.addEventListener('touchend', (e)=>{
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if(Math.abs(dx) > 60){
+    if(dx < 0 && cardIdx < cards.length-1){ cardIdx++; renderCard(); }
+    else if(dx > 0 && cardIdx > 0){ cardIdx--; renderCard(); }
+  }
+}, {passive:true});
+
+renderCard();
+
+/* ===== VIEW SWITCHING ===== */
+const tabs = document.querySelectorAll('.nav-tab');
+const views = document.querySelectorAll('.view');
+tabs.forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    const v = tab.dataset.view;
+    tabs.forEach(t=> t.classList.toggle('active', t===tab));
+    views.forEach(view=> view.classList.toggle('active', view.id === 'view-'+v));
+  });
+});
+
+/* ===== TABLE TYPE & CHIPS LOGIC ===== */
+const tableTypeSelect = document.getElementById('table-type');
+const verbChipsContainer = document.getElementById('verb-chips');
+let currentVerb = "work";
+let currentMode = "view";
+
+function renderChips(type) {
+  verbChipsContainer.innerHTML = '';
+  if (type === 'verbs') {
+    Object.keys(verbs).forEach((v, i) => {
+      const chip = document.createElement('button');
+      chip.className = 'verb-chip' + (v === currentVerb ? ' active' : '');
+      chip.dataset.verb = v;
+      chip.innerHTML = `${v} <small>${verbs[v].regular ? 'прав.' : 'неправ.'}</small>`;
+      verbChipsContainer.appendChild(chip);
+    });
+  } else {
+    const chip = document.createElement('div');
+    chip.className = 'verb-chip';
+    chip.style.opacity = '0.5';
+    chip.style.cursor = 'default';
+    chip.textContent = 'Скоро...';
+    verbChipsContainer.appendChild(chip);
+  }
+}
+
+tableTypeSelect.addEventListener('change', (e) => {
+  const newType = e.target.value;
+  renderChips(newType);
+  if (newType === 'verbs') {
+    currentVerb = Object.keys(verbs)[0];
+    renderTable();
+  } else {
+    // Очистка таблицы и скрытие панели ввода для будущих типов
+    document.getElementById('verbs-table').innerHTML = '';
+    document.getElementById('input-panel').style.display = 'none';
+    document.getElementById('table-hint').textContent = 'Раздел в разработке';
+  }
+});
+
+verbChipsContainer.addEventListener('click', (e) => {
+  const chip = e.target.closest('.verb-chip');
+  if(!chip || !chip.dataset.verb) return;
+  
+  const newVerb = chip.dataset.verb;
+  if (newVerb === currentVerb) return;
+  
+  verbChipsContainer.querySelectorAll('.verb-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  
+  currentVerb = newVerb;
+  renderTable();
+});
+
+/* ===== VERBS TABLE ===== */
+const tableEl = document.getElementById('verbs-table');
+const inputPanel = document.getElementById('input-panel');
+const tableHint = document.getElementById('table-hint');
+const coordText = document.getElementById('input-coord-text');
+const answerInput = document.getElementById('answer-input');
+const checkBtn = document.getElementById('check-btn');
+const feedbackEl = document.getElementById('feedback');
+const skipBtn = document.getElementById('skip-btn');
+
+let inputTarget = null;
+
+function renderTable(){
+  let html = "<thead><tr><th></th>";
+  tenses.forEach(t=> html += `<th>${t.label}</th>`);
+  html += "</tr></thead><tbody>";
+  pronouns.forEach(p=>{
+    html += `<tr><th>${p.label}</th>`;
+    tenses.forEach(t=>{
+      const form = buildForm(currentVerb, p.key, t.key);
+      html += `<td><div class="cell" data-pron="${p.key}" data-tense="${t.key}" data-form="${form}">
+        <span class="text">${form}</span>
+      </div></td>`;
+    });
+    html += "</tr>";
+  });
+  html += "</tbody>";
+  tableEl.innerHTML = html;
+  tableEl.className = "verbs mode-" + currentMode;
+  applyMode();
+}
+
+function applyMode(){
+  tableEl.querySelectorAll('.cell.revealed').forEach(c=> c.classList.remove('revealed'));
+  if(currentMode === "view"){
+    inputPanel.style.display = "none";
+    tableHint.textContent = "Нажми на ячейку, чтобы услышать произношение";
+  } else if(currentMode === "self"){
+    inputPanel.style.display = "none";
+    tableHint.textContent = "Нажми на ячейку, чтобы открыть форму";
+  } else if(currentMode === "input"){
+    inputPanel.style.display = "flex";
+    tableHint.textContent = "Введи форму глагола для указанной координаты";
+    nextInputTarget();
+  }
+}
+
+tableEl.addEventListener('click', (e)=>{
+  const cell = e.target.closest('.cell');
+  if(!cell) return;
+  if(currentMode === "view"){
+    speak(cell.dataset.form);
+  } else if(currentMode === "self"){
+    cell.classList.toggle('revealed');
+    if(cell.classList.contains('revealed')){
+      speak(cell.dataset.form);
+    }
+  }
+});
+
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=> b.classList.toggle('active', b===btn));
+    currentMode = btn.dataset.mode;
+    tableEl.className = "verbs mode-" + currentMode;
+    applyMode();
+  });
+});
+
+/* ===== INPUT MODE ===== */
+function nextInputTarget(){
+  const p = pronouns[Math.floor(Math.random()*pronouns.length)];
+  const t = tenses[Math.floor(Math.random()*tenses.length)];
+  inputTarget = { pronKey: p.key, tenseKey: t.key, pronLabel: p.label, tenseLabel: t.label };
+  coordText.textContent = p.label + "  /  " + t.label;
+  answerInput.value = "";
+  feedbackEl.textContent = "";
+  feedbackEl.className = "feedback";
+  answerInput.focus();
+}
+
+function checkAnswer(){
+  if(!inputTarget) return;
+  const correct = buildForm(currentVerb, inputTarget.pronKey, inputTarget.tenseKey);
+  const user = answerInput.value.trim().toLowerCase();
+  if(!user){
+    toast("Введи ответ");
+    return;
+  }
+  if(user === correct.toLowerCase()){
+    feedbackEl.textContent = "Верно! " + correct;
+    feedbackEl.className = "feedback ok";
+    speak(correct);
+    highlightCell(inputTarget.pronKey, inputTarget.tenseKey, true);
+    setTimeout(()=>{
+      highlightCell(inputTarget.pronKey, inputTarget.tenseKey, false);
+      nextInputTarget();
+    }, 1400);
+  } else {
+    feedbackEl.textContent = "Не совсем. Правильно: " + correct;
+    feedbackEl.className = "feedback err";
+    speak(correct);
+    highlightCell(inputTarget.pronKey, inputTarget.tenseKey, true);
+  }
+}
+
+function highlightCell(pronKey, tenseKey, on){
+  const cell = tableEl.querySelector(`.cell[data-pron="${pronKey}"][data-tense="${tenseKey}"]`);
+  if(!cell) return;
+  if(on){
+    cell.classList.add('revealed');
+    cell.style.background = "#fdf0e0";
+  } else {
+    cell.classList.remove('revealed');
+    cell.style.background = "";
+  }
+}
+
+checkBtn.addEventListener('click', checkAnswer);
+answerInput.addEventListener('keydown', (e)=>{
+  if(e.key === "Enter") checkAnswer();
+});
+skipBtn.addEventListener('click', ()=>{
+  feedbackEl.textContent = "";
+  feedbackEl.className = "feedback";
+  nextInputTarget();
+});
+
+/* ===== Инициализация ===== */
+renderChips('verbs');
+renderTable();
+
+document.body.addEventListener('touchstart', function once(){
+  if(window.speechSynthesis){
+    const u = new SpeechSynthesisUtterance("");
+    window.speechSynthesis.speak(u);
+  }
+  document.body.removeEventListener('touchstart', once);
+}, {once:true});
+</script>
+</body>
+</html>
