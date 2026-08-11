@@ -1,9 +1,11 @@
-const CACHE_NAME = 'linguaflip-cache-v1';
+const CACHE_NAME = 'linguaflip-cache-v2'; // Версию кеша подняли
 const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 // Установка Service Worker и кеширование базовых ресурсов
@@ -34,23 +36,19 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Перехват сетевых запросов
+// Перехват сетевых запросов (Cache-first)
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      // Если ресурс есть в кеше, отдаем его (cache-first)
       if (cachedResponse) {
         return cachedResponse;
       }
       
-      // Иначе запрашиваем из сети
       return fetch(event.request).then((networkResponse) => {
-        // Проверяем валидность ответа
         if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque')) {
           return networkResponse;
         }
 
-        // Копируем ответ и сохраняем в кеш для будущего использования (например, шрифты Google)
         const responseToCache = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseToCache);
@@ -58,7 +56,6 @@ self.addEventListener('fetch', (event) => {
 
         return networkResponse;
       }).catch(() => {
-        // Если сети нет и ресурса нет в кеше, пытаемся отдать index.html (опционально)
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
