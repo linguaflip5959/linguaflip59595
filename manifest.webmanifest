@@ -1,5 +1,6 @@
 {
   "name": "LinguaFlip",
+  "id": "./",
   "short_name": "LinguaFlip",
   "description": "Приложение флеш-карточек для изучения английского языка",
   "start_url": "./",
