@@ -65,12 +65,18 @@ body {
 header {
   padding: 22px 20px 8px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   max-width: 680px;
   margin: 0 auto;
 }
-.brand { display: flex; align-items: baseline; gap: 8px; }
+.brand { 
+  display: flex; 
+  align-items: baseline; 
+  gap: 8px; 
+  width: 100%;
+  justify-content: center;
+}
 .brand .mark {
   width: 26px; height: 26px; border-radius: 7px;
   background: linear-gradient(135deg, var(--accent), var(--accent-light));
@@ -85,11 +91,17 @@ header {
 }
 .brand h1 em { font-style: italic; color: var(--accent); font-weight: 600; }
 
-.header-actions { display: flex; align-items: center; gap: 8px; }
+.header-actions { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  width: 100%;
+  justify-content: space-between;
+}
 .counter, .stats {
   font-size: 12px; color: var(--muted); background: var(--paper);
   padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line);
-  font-weight: 500;
+  font-weight: 500; white-space: nowrap;
 }
 .stats .ok { color: var(--ok); font-weight: 700; }
 .stats .err { color: var(--err); font-weight: 700; }
@@ -99,6 +111,7 @@ header {
   border: 1px solid var(--line); background: var(--paper);
   color: var(--ink-soft); cursor: pointer; font-size: 16px;
   display: grid; place-items: center; transition: all .2s ease;
+  flex-shrink: 0;
 }
 .icon-btn:active { transform: scale(.92); background: var(--accent-soft); }
 
@@ -129,13 +142,13 @@ main { max-width: 680px; margin: 0 auto; padding: 8px 20px 0; }
 .chip.active { background: var(--accent); color: var(--paper); border-color: var(--accent); box-shadow: 0 4px 10px -3px var(--chip-active-shadow); }
 
 /* Flashcards */
-.stage { position: relative; perspective: 1600px; min-height: 380px; display: grid; place-items: center; padding: 8px 0 16px; }
-.card { width: 100%; aspect-ratio: 3/4.1; max-width: 380px; position: relative; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.4,.2,.2,1); cursor: pointer; }
+.stage { position: relative; perspective: 1600px; min-height: 340px; display: grid; place-items: center; padding: 8px 0 16px; }
+.card { width: 100%; aspect-ratio: 3/3.7; max-width: 380px; position: relative; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.4,.2,.2,1); cursor: pointer; }
 .card.flipped { transform: rotateY(180deg); }
 .face {
   position: absolute; inset: 0; border-radius: 24px;
   -webkit-backface-visibility: hidden; backface-visibility: hidden;
-  padding: 32px 26px; display: flex; flex-direction: column;
+  padding: 24px 22px; display: flex; flex-direction: column;
   box-shadow: var(--shadow); border: 1px solid var(--line); overflow: hidden;
 }
 .face.front { background: radial-gradient(120% 60% at 50% 0%, var(--front-card-gradient) 0%, var(--paper) 60%); justify-content: space-between; }
@@ -151,22 +164,25 @@ main { max-width: 680px; margin: 0 auto; padding: 8px 20px 0; }
 }
 .card-tag { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .back .card-tag { color: var(--back-card-tag); }
-.word { font-family: 'Fraunces', serif; font-weight: 800; font-size: clamp(34px, 9vw, 48px); line-height: 1; letter-spacing: -1px; margin: 8px 0 6px; }
-.transcription { font-family: 'Fraunces', serif; font-style: italic; font-size: 18px; color: var(--ink-soft); font-weight: 500; }
+
+/* Увеличенные тексты */
+.word { font-family: 'Fraunces', serif; font-weight: 800; font-size: clamp(38px, 11vw, 56px); line-height: 1; letter-spacing: -1px; margin: 8px 0 6px; }
+.transcription { font-family: 'Fraunces', serif; font-style: italic; font-size: 20px; color: var(--ink-soft); font-weight: 500; }
+
 .hint { margin-top: auto; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; font-weight: 500; }
 .hint .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:.3; transform:scale(.8);} 50%{opacity:1; transform:scale(1.2);} }
 
-.back .translation { font-family: 'Fraunces', serif; font-weight: 600; font-size: 28px; line-height: 1.1; margin: 6px 0 18px; color: var(--paper); }
-.example-block { border-top: 1px solid rgba(255,255,255,.12); padding-top: 16px; margin-top: auto; position: relative; }
-.example-en { font-size: 15px; line-height: 1.45; color: var(--back-card-text); font-weight: 500; font-style: italic; }
+.back .translation { font-family: 'Fraunces', serif; font-weight: 600; font-size: 32px; line-height: 1.1; margin: 6px 0 14px; color: var(--paper); }
+.example-block { border-top: 1px solid rgba(255,255,255,.12); padding-top: 14px; margin-top: auto; position: relative; }
+.example-en { font-size: 17px; line-height: 1.4; color: var(--back-card-text); font-weight: 500; font-style: italic; }
 .example-en b { color: var(--example-highlight); font-style: normal; font-weight: 700; }
-.example-ru { font-size: 13px; line-height: 1.45; color: var(--example-ru); margin-top: 6px; }
+.example-ru { font-size: 15px; line-height: 1.4; color: var(--example-ru); margin-top: 6px; }
 
 /* Action Buttons on Card */
-.card-actions { display: flex; gap: 12px; margin-top: 20px; z-index: 2; }
+.card-actions { display: flex; gap: 10px; margin-top: 14px; z-index: 2; }
 .action-btn {
-  flex: 1; padding: 14px; border: none; border-radius: 12px;
+  flex: 1; padding: 12px; border: none; border-radius: 12px;
   font-size: 16px; font-weight: 700; cursor: pointer;
   transition: transform .15s ease; color: #fff;
   font-family: 'DM Sans', sans-serif; box-shadow: 0 4px 10px -4px rgba(0,0,0,.3);
@@ -239,6 +255,9 @@ table.verbs td { height: 54px; min-width: 90px; font-family: 'Fraunces', serif; 
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 @media (max-width: 380px) {
-  .word { font-size: 34px; }
-  .face { padding: 26px 22px; }
+  .word { font-size: 36px; }
+  .face { padding: 20px 18px; }
+  .action-btn { padding: 10px; font-size: 15px; }
+  .header-actions { gap: 6px; }
+  .counter, .stats { padding: 5px 8px; font-size: 11px; }
 }
