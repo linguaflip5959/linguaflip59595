@@ -2,7 +2,7 @@
   "name": "LinguaFlip",
   "id": "./",
   "short_name": "LinguaFlip",
-  "description": "Приложение флеш-карточек для изучения английского языка",
+  "description": "Тренажёр словарного запаса английского: карточки со словами и таблицы глаголов",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f4ede2",
