@@ -3,507 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<!-- PWA Meta Tags -->
 <meta name="theme-color" content="#c2410c">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="./styles.css">
 <title>LinguaFlip</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#f4ede2;
-    --bg2:#efe6d6;
-    --paper:#fbf6ec;
-    --ink:#1f1a14;
-    --ink-soft:#4a4036;
-    --muted:#8a7d6c;
-    --line:#d9cdb6;
-    --accent:#c2410c;
-    --accent-soft:#f3d9c4;
-    --ok:#3f6b3a;
-    --err:#9b2c2c;
-    --shadow:0 18px 40px -18px rgba(60,40,20,.35), 0 4px 10px -4px rgba(60,40,20,.15);
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0;}
-  body{
-    font-family:'DM Sans', system-ui, sans-serif;
-    color:var(--ink);
-    background:
-      radial-gradient(1200px 600px at 80% -10%, #f7e8d4 0%, transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, #ecddc6 0%, transparent 55%),
-      var(--bg);
-    min-height:100dvh;
-    overflow-x:hidden;
-    padding-bottom: 110px;
-  }
-  /* Header */
-  header{
-    padding:22px 20px 8px;
-    display:flex; align-items:center; justify-content:space-between;
-    max-width:680px; margin:0 auto;
-  }
-  .brand{display:flex; align-items:baseline; gap:8px;}
-  .brand .mark{
-    width:26px; height:26px; border-radius:7px;
-    background:linear-gradient(135deg, var(--accent), #e57238);
-    display:inline-grid; place-items:center;
-    color:#fff; font-weight:800; font-family:'Fraunces', serif;
-    box-shadow:0 4px 10px -3px rgba(194,65,12,.5);
-    transform:translateY(2px);
-  }
-  .brand h1{
-    font-family:'Fraunces', serif;
-    font-weight:800;
-    font-size:26px;
-    letter-spacing:-.5px;
-    margin:0;
-  }
-  .brand h1 em{font-style:italic; color:var(--accent); font-weight:600;}
-  .counter{
-    font-size:12px; color:var(--muted);
-    background:var(--paper);
-    padding:6px 10px; border-radius:999px;
-    border:1px solid var(--line);
-    font-weight:500;
-  }
-
-  /* Main area */
-  main{
-    max-width:680px; margin:0 auto;
-    padding:8px 20px 0;
-  }
-
-  /* Flashcards view */
-  .stage{
-    position:relative;
-    perspective:1600px;
-    min-height:380px;
-    display:grid; place-items:center;
-    padding:8px 0 16px;
-  }
-  .card{
-    width:100%;
-    aspect-ratio: 3/4.1;
-    max-width:380px;
-    position:relative;
-    transform-style:preserve-3d;
-    transition:transform .7s cubic-bezier(.4,.2,.2,1);
-    cursor:pointer;
-  }
-  .card.flipped{transform:rotateY(180deg);}
-  .face{
-    position:absolute; inset:0;
-    border-radius:24px;
-    -webkit-backface-visibility:hidden;
-    backface-visibility:hidden;
-    padding:32px 26px;
-    display:flex; flex-direction:column;
-    box-shadow:var(--shadow);
-    border:1px solid var(--line);
-    overflow:hidden;
-  }
-  .face.front{
-    background:
-      radial-gradient(120% 60% at 50% 0%, #fffaf1 0%, var(--paper) 60%);
-    justify-content:space-between;
-  }
-  .face.back{
-    background:
-      radial-gradient(120% 60% at 50% 0%, #2a2118 0%, #1c1610 70%);
-    color:#f6ead8;
-    transform:rotateY(180deg);
-    border-color:#000;
-  }
-  .face.back::before{
-    content:""; position:absolute; inset:0;
-    background:
-      radial-gradient(140% 80% at 100% 0%, rgba(229,114,56,.18) 0%, transparent 50%),
-      radial-gradient(120% 60% at 0% 100%, rgba(229,114,56,.10) 0%, transparent 50%);
-    pointer-events:none;
-  }
-  .card-tag{
-    font-size:11px; letter-spacing:.18em; text-transform:uppercase;
-    color:var(--muted); font-weight:600;
-  }
-  .back .card-tag{color:#c9a987;}
-  .word{
-    font-family:'Fraunces', serif;
-    font-weight:800;
-    font-size:clamp(34px, 9vw, 48px);
-    line-height:1;
-    letter-spacing:-1px;
-    margin:8px 0 6px;
-  }
-  .transcription{
-    font-family:'Fraunces', serif;
-    font-style:italic;
-    font-size:18px;
-    color:var(--ink-soft);
-    font-weight:500;
-  }
-  .hint{
-    margin-top:auto;
-    font-size:12px; color:var(--muted);
-    display:flex; align-items:center; gap:8px;
-    font-weight:500;
-  }
-  .hint .dot{
-    width:6px; height:6px; border-radius:50%;
-    background:var(--accent);
-    animation:pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse{
-    0%,100%{opacity:.3; transform:scale(.8);}
-    50%{opacity:1; transform:scale(1.2);}
-  }
-  .back .translation{
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:28px;
-    line-height:1.1;
-    margin:6px 0 18px;
-    color:#fff;
-  }
-  .example-block{
-    border-top:1px solid rgba(255,255,255,.12);
-    padding-top:16px;
-    margin-top:auto;
-    position:relative;
-  }
-  .example-en{
-    font-size:15px; line-height:1.45;
-    color:#f6ead8; font-weight:500;
-    font-style:italic;
-  }
-  .example-en b{color:#ffb27a; font-style:normal; font-weight:700;}
-  .example-ru{
-    font-size:13px; line-height:1.45;
-    color:#a89578; margin-top:6px;
-  }
-
-  /* Card nav */
-  .card-nav{
-    display:flex; align-items:center; justify-content:space-between;
-    gap:10px; margin-top:8px;
-  }
-  .nav-btn{
-    flex:0 0 auto;
-    width:46px; height:46px; border-radius:14px;
-    background:var(--paper);
-    border:1px solid var(--line);
-    color:var(--ink);
-    font-size:20px;
-    display:grid; place-items:center;
-    cursor:pointer;
-    transition:all .2s ease;
-  }
-  .nav-btn:active{transform:scale(.92); background:var(--accent-soft);}
-  .nav-btn:disabled{opacity:.35; cursor:not-allowed;}
-  .progress{
-    flex:1; height:6px; background:var(--bg2); border-radius:999px; overflow:hidden;
-  }
-  .progress-bar{
-    height:100%; background:linear-gradient(90deg, var(--accent), #e57238);
-    width:0%; transition:width .35s ease;
-    border-radius:999px;
-  }
-  .progress-label{
-    font-size:11px; color:var(--muted); text-align:center;
-    margin-top:6px; font-weight:500;
-  }
-
-  /* Table view */
-  .table-wrap{
-    background:var(--paper);
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:14px;
-    box-shadow:var(--shadow);
-  }
-  .table-head{
-    display:flex; flex-direction:column; gap:12px;
-    margin-bottom:12px;
-  }
-
-  /* Table Type Dropdown */
-  .table-type-row{
-    display:flex; align-items:center; gap:10px;
-  }
-  .table-type-row label{
-    font-size:12px; color:var(--muted); font-weight:600;
-    letter-spacing:.05em; text-transform:uppercase;
-  }
-  .table-type-row select{
-    flex:1;
-    appearance:none; -webkit-appearance:none;
-    background:var(--bg2) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%231f1a14' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>") no-repeat right 12px center;
-    border:1px solid var(--line);
-    color:var(--ink);
-    padding:10px 32px 10px 12px;
-    border-radius:10px;
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:16px;
-    cursor:pointer;
-  }
-  .table-type-row select option[disabled] { color: #aaa; }
-
-  /* Verb Chips */
-  .verb-chips-row{
-    margin: 0 -14px;
-    padding: 0 14px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .verb-chips-row::-webkit-scrollbar { display: none; }
-  .verb-chips{
-    display: flex;
-    gap: 8px;
-    padding: 2px;
-  }
-  .verb-chip{
-    flex: 0 0 auto;
-    padding: 9px 16px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--bg2);
-    color: var(--ink-soft);
-    font-family: 'Fraunces', serif;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all .25s ease;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .verb-chip small{
-    font-size: 10px;
-    opacity: .7;
-    font-family: 'DM Sans';
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-  .verb-chip.active{
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-    box-shadow: 0 4px 10px -3px rgba(194,65,12,.45);
-  }
-
-  .modes{
-    display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
-    background:var(--bg2);
-    padding:4px; border-radius:12px;
-  }
-  .mode-btn{
-    border:none; background:transparent;
-    padding:9px 6px; border-radius:9px;
-    font-family:'DM Sans', sans-serif;
-    font-size:12px; font-weight:600;
-    color:var(--ink-soft);
-    cursor:pointer;
-    transition:all .25s ease;
-  }
-  .mode-btn.active{
-    background:var(--paper);
-    color:var(--accent);
-    box-shadow:0 2px 6px -2px rgba(60,40,20,.2);
-  }
-
-  .table-scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
-  table.verbs{
-    border-collapse:separate; border-spacing:0;
-    width:100%; min-width:560px;
-    font-size:13px;
-  }
-  table.verbs th, table.verbs td{
-    border-bottom:1px solid var(--line);
-    border-right:1px solid var(--line);
-    padding:0;
-    text-align:center;
-    vertical-align:middle;
-  }
-  table.verbs th:last-child, table.verbs td:last-child{border-right:none;}
-  table.verbs thead th{
-    background:var(--bg2);
-    color:var(--ink-soft);
-    font-weight:600;
-    font-size:11px;
-    letter-spacing:.04em;
-    padding:10px 6px;
-    position:sticky; top:0;
-  }
-  table.verbs tbody th{
-    background:var(--bg2);
-    color:var(--ink-soft);
-    font-weight:600;
-    padding:12px 8px;
-    font-size:13px;
-    text-align:left;
-    position:sticky; left:0;
-  }
-  table.verbs td{
-    height:54px;
-    min-width:90px;
-    font-family:'Fraunces', serif;
-    font-weight:600;
-    font-size:14px;
-    color:var(--ink);
-  }
-  .cell{
-    width:100%; height:100%;
-    display:flex; align-items:center; justify-content:center;
-    padding:6px 4px;
-    cursor:pointer;
-    transition:background .15s ease;
-    position:relative;
-  }
-  /* View mode */
-  .mode-view .cell:hover{background:var(--accent-soft);}
-  /* Self-check mode */
-  .mode-self .cell .text{
-    visibility:hidden;
-  }
-  .mode-self .cell.revealed .text{visibility:visible;}
-  .mode-self .cell.revealed{background:#fdf0e0;}
-  .mode-self .cell:not(.revealed)::after{
-    content:"•••"; color:var(--muted); font-family:'DM Sans'; font-weight:700;
-    letter-spacing:2px;
-  }
-  .mode-self .cell.revealed::after{content:none;}
-  .mode-self .cell:not(.revealed):hover{background:var(--bg2);}
-
-  /* Input mode */
-  .input-panel{
-    background:linear-gradient(135deg, #2a2118, #1c1610);
-    color:#f6ead8;
-    border-radius:14px;
-    padding:16px 18px;
-    margin-bottom:12px;
-    display:flex; flex-direction:column; gap:10px;
-  }
-  .input-coord{
-    font-family:'Fraunces', serif;
-    font-size:18px; font-weight:600;
-    color:#ffb27a;
-  }
-  .input-coord small{
-    display:block; color:#a89578; font-size:11px;
-    font-family:'DM Sans'; font-weight:500;
-    text-transform:uppercase; letter-spacing:.1em; margin-bottom:4px;
-  }
-  .input-row{display:flex; gap:8px;}
-  .input-row input{
-    flex:1;
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.15);
-    color:#fff;
-    padding:11px 14px;
-    border-radius:10px;
-    font-family:'Fraunces', serif;
-    font-size:16px; font-weight:600;
-    outline:none;
-  }
-  .input-row input:focus{border-color:#ffb27a; background:rgba(255,255,255,.12);}
-  .input-row input::placeholder{color:#7a6a55;}
-  .input-row button{
-    background:var(--accent);
-    color:#fff; border:none;
-    padding:0 18px; border-radius:10px;
-    font-weight:700; font-size:14px;
-    cursor:pointer;
-    transition:transform .15s ease, background .2s ease;
-  }
-  .input-row button:active{transform:scale(.95);}
-  .feedback{
-    font-size:13px; font-weight:600;
-    min-height:18px;
-    transition:opacity .2s ease;
-  }
-  .feedback.ok{color:#7cd66f;}
-  .feedback.err{color:#ff8a6f;}
-  .skip-btn{
-    background:transparent; border:none; color:#a89578;
-    font-size:12px; cursor:pointer; text-decoration:underline;
-    align-self:flex-start; padding:0;
-  }
-  .mode-input table.verbs td{cursor:default;}
-
-  .table-hint{
-    font-size:11px; color:var(--muted);
-    margin-top:10px; text-align:center;
-  }
-
-  /* Bottom nav */
-  .bottom-nav{
-    position:fixed; bottom:0; left:0; right:0;
-    background:rgba(251,246,236,.92);
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-    border-top:1px solid var(--line);
-    padding:12px 20px calc(12px + env(safe-area-inset-bottom));
-    z-index:50;
-  }
-  .bottom-nav-inner{
-    max-width:680px; margin:0 auto;
-    display:grid; grid-template-columns:1fr 1fr; gap:8px;
-    background:var(--bg2);
-    padding:5px; border-radius:16px;
-  }
-  .nav-tab{
-    border:none; background:transparent;
-    padding:13px 10px; border-radius:11px;
-    font-family:'DM Sans', sans-serif;
-    font-size:14px; font-weight:600;
-    color:var(--ink-soft);
-    cursor:pointer;
-    transition:all .25s ease;
-    display:flex; align-items:center; justify-content:center; gap:8px;
-  }
-  .nav-tab .icon{
-    width:16px; height:16px;
-    display:inline-block;
-  }
-  .nav-tab.active{
-    background:var(--ink);
-    color:var(--paper);
-    box-shadow:0 4px 12px -4px rgba(31,26,20,.5);
-  }
-
-  /* Views toggle */
-  .view{display:none; animation:fadeIn .35s ease;}
-  .view.active{display:block;}
-  @keyframes fadeIn{
-    from{opacity:0; transform:translateY(8px);}
-    to{opacity:1; transform:translateY(0);}
-  }
-
-  /* Toast */
-  .toast{
-    position:fixed; left:50%; bottom:130px;
-    transform:translateX(-50%) translateY(20px);
-    background:var(--ink); color:var(--paper);
-    padding:10px 18px; border-radius:999px;
-    font-size:13px; font-weight:500;
-    opacity:0; pointer-events:none;
-    transition:all .3s ease;
-    z-index:100;
-    box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
-  }
-  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-
-  @media (max-width:380px){
-    .word{font-size:34px;}
-    .face{padding:26px 22px;}
-  }
-</style>
 </head>
 <body>
 
@@ -512,12 +19,21 @@
     <span class="mark">L</span>
     <h1>Lingua<em>Flip</em></h1>
   </div>
-  <div class="counter" id="counter">1 / 10</div>
+  <div class="header-actions">
+    <span class="counter" id="counter">1 / 10</span>
+    <span class="stats" id="stats-badge"><span class="ok">0</span> / <span class="err">0</span></span>
+    <button class="icon-btn" id="save-btn" aria-label="Сохранить прогресс">⬇</button>
+    <button class="icon-btn" id="load-btn" aria-label="Восстановить прогресс">⬆</button>
+    <input type="file" id="file-input" accept=".json" style="display:none">
+  </div>
 </header>
 
 <main>
   <!-- FLASHCARDS VIEW -->
   <section class="view active" id="view-cards">
+    <div class="chips-row">
+      <div class="chips-container" id="topic-chips"></div>
+    </div>
     <div class="stage">
       <div class="card" id="card">
         <div class="face front">
@@ -536,6 +52,10 @@
           <div class="example-block">
             <div class="example-en" id="card-example">—</div>
             <div class="example-ru" id="card-example-ru">—</div>
+          </div>
+          <div class="card-actions">
+            <button class="action-btn dont-know-btn" id="dont-know-btn">Не знаю</button>
+            <button class="action-btn know-btn" id="know-btn">Знаю</button>
           </div>
         </div>
       </div>
@@ -561,8 +81,8 @@
             <option value="numerals" disabled>Числительные</option>
           </select>
         </div>
-        <div class="verb-chips-row">
-          <div class="verb-chips" id="verb-chips"></div>
+        <div class="chips-row" style="margin: 0;">
+          <div class="chips-container" id="verb-chips"></div>
         </div>
         <div class="modes">
           <button class="mode-btn active" data-mode="view">Смотреть</button>
@@ -607,23 +127,38 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="./data_en.js"></script>
 <script>
-/* ===== ДАННЫЕ КАРТОЧЕК ===== */
-const cards = [
-  { word:"acquire", transcription:"[əˈkwaɪə]", translation:"приобретать", example:"She <b>acquired</b> new skills quickly.", exampleRu:"Она быстро приобрела новые навыки." },
-  { word:"endeavor", transcription:"[ɪnˈdevə]", translation:"стремиться, попытка", example:"We <b>endeavored</b> to finish on time.", exampleRu:"Мы стремились закончить вовремя." },
-  { word:"persevere", transcription:"[ˌpɜːsɪˈvɪə]", translation:"упорствовать", example:"He <b>persevered</b> despite the challenges.", exampleRu:"Он упорствовал, несмотря на трудности." },
-  { word:"diligent", transcription:"[ˈdɪlɪdʒənt]", translation:"усердный", example:"She is a <b>diligent</b> student.", exampleRu:"Она усердная студентка." },
-  { word:"vivid", transcription:"[ˈvɪvɪd]", translation:"яркий, живой", example:"I have a <b>vivid</b> memory of that day.", exampleRu:"У меня яркое воспоминание о том дне." },
-  { word:"scarce", transcription:"[skeəs]", translation:"редкий, недостаточный", example:"Clean water became <b>scarce</b>.", exampleRu:"Чистая вода стала редкостью." },
-  { word:"reluctant", transcription:"[rɪˈlʌktənt]", translation:"неохотный", example:"He was <b>reluctant</b> to leave.", exampleRu:"Он неохотно уходил." },
-  { word:"thrive", transcription:"[θraɪv]", translation:"процветать", example:"Plants <b>thrive</b> in sunlight.", exampleRu:"Растения процветают на солнце." },
-  { word:"compel", transcription:"[kəmˈpel]", translation:"заставлять", example:"Nothing can <b>compel</b> me to lie.", exampleRu:"Ничто не заставит меня лгать." },
-  { word:"subtle", transcription:"[ˈsʌtl]", translation:"тонкий, едва уловимый", example:"There is a <b>subtle</b> difference.", exampleRu:"Есть тонкая разница." },
-  { word:"ponder", transcription:"[ˈpɒndə]", translation:"размышлять", example:"She <b>pondered</b> the question silently.", exampleRu:"Она молча размышляла над вопросом." }
+/* ===== ИНИЦИАЛИЗАЦИЯ ЯЗЫКА ===== */
+const CURRENT_LANG = LANG_EN;
+const allCards = CURRENT_LANG.cards;
+const verbs = CURRENT_LANG.verbs;
+
+let filteredCards = [];
+let currentTopic = "all";
+let cardIdx = 0;
+
+let progress = {
+  topic: 'all',
+  idx: 0,
+  stats: { correct: 0, incorrect: 0 },
+  marks: {}
+};
+
+const topics = [
+  { key: "all", label: "Все темы" },
+  { key: "food", label: "Food" },
+  { key: "home", label: "Home" },
+  { key: "street", label: "Street" },
+  { key: "work", label: "Work" },
+  { key: "travel", label: "Travel" },
+  { key: "feelings", label: "Feelings" },
+  { key: "animals", label: "Animals" },
+  { key: "body", label: "Body" },
+  { key: "clothes", label: "Clothes" },
+  { key: "time", label: "Time" }
 ];
 
-/* ===== ДАННЫЕ ГЛАГОЛОВ ===== */
 const pronouns = [
   { key:"I",        label:"I" },
   { key:"you",      label:"you" },
@@ -640,23 +175,13 @@ const tenses = [
   { key:"pp",  label:"Present Perfect" }
 ];
 
-const verbs = {
-  work:  { base:"work",  past:"worked",  participle:"worked",  ing:"working",  regular:true,  thirdSingular:"works" },
-  go:    { base:"go",    past:"went",    participle:"gone",    ing:"going",    regular:false, thirdSingular:"goes" },
-  speak: { base:"speak", past:"spoke",   participle:"spoken",  ing:"speaking", regular:false, thirdSingular:"speaks" }
-};
-
-/* Построение формы глагола для местоимения и времени */
 function buildForm(verb, pronKey, tenseKey){
   const v = verbs[verb];
   const isThird = (pronKey === "he/she");
   switch(tenseKey){
-    case "ps":
-      return isThird ? v.thirdSingular : v.base;
-    case "pas":
-      return v.past;
-    case "fs":
-      return "will " + v.base;
+    case "ps": return isThird ? v.thirdSingular : v.base;
+    case "pas": return v.past;
+    case "fs": return "will " + v.base;
     case "pc": {
       const aux = (pronKey === "I") ? "am" : (isThird ? "is" : "are");
       return aux + " " + v.ing;
@@ -700,51 +225,209 @@ function toast(msg){
   toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 1800);
 }
 
+/* ===== CAROUSEL AUTO-SCROLL ===== */
+function scrollToActiveChip(container) {
+  setTimeout(() => {
+    const activeChip = container.querySelector('.chip.active');
+    if (activeChip) {
+      activeChip.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, 50);
+}
+
+/* ===== PROGRESS & STATS ===== */
+function loadProgress() {
+  const saved = localStorage.getItem('progress_' + CURRENT_LANG.code);
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      progress = { ...progress, ...data };
+      if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
+      if (!progress.marks) progress.marks = {};
+    } catch(e) { console.error("Error loading progress", e); }
+  }
+  currentTopic = progress.topic || 'all';
+  cardIdx = progress.idx || 0;
+  updateFilteredCards();
+  if (cardIdx < 0 || cardIdx >= filteredCards.length) cardIdx = 0;
+  updateStatsUI();
+}
+
+function saveProgress() {
+  progress.topic = currentTopic;
+  progress.idx = cardIdx;
+  localStorage.setItem('progress_' + CURRENT_LANG.code, JSON.stringify(progress));
+}
+
+function updateStatsUI() {
+  document.querySelector('#stats-badge .ok').textContent = progress.stats.correct;
+  document.querySelector('#stats-badge .err').textContent = progress.stats.incorrect;
+}
+
+function updateFilteredCards() {
+  if (currentTopic === 'all') {
+    filteredCards = allCards;
+  } else {
+    filteredCards = allCards.filter(c => c.topic === currentTopic);
+  }
+}
+
+/* ===== TOPICS CHIPS ===== */
+const topicChipsContainer = document.getElementById('topic-chips');
+function renderTopicChips() {
+  topicChipsContainer.innerHTML = '';
+  topics.forEach(t => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (t.key === currentTopic ? ' active' : '');
+    chip.dataset.topic = t.key;
+    chip.textContent = t.label;
+    topicChipsContainer.appendChild(chip);
+  });
+  scrollToActiveChip(topicChipsContainer); 
+}
+
+topicChipsContainer.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if(!chip || !chip.dataset.topic) return;
+  const newTopic = chip.dataset.topic;
+  if (newTopic === currentTopic) return;
+  
+  currentTopic = newTopic;
+  cardIdx = 0; // Сбрасываем индекс при смене темы
+  updateFilteredCards();
+  renderTopicChips();
+  renderCard();
+  saveProgress();
+});
+
 /* ===== FLASHCARDS LOGIC ===== */
 const cardEl = document.getElementById('card');
-let cardIdx = 0;
 
 function renderCard(){
-  const c = cards[cardIdx];
+  if (filteredCards.length === 0) return;
+  const c = filteredCards[cardIdx];
   document.getElementById('card-word').textContent = c.word;
   document.getElementById('card-trans').textContent = c.transcription;
   document.getElementById('card-translation').textContent = c.translation;
   document.getElementById('card-example').innerHTML = c.example;
-  document.getElementById('card-example-ru').textContent = c.exampleRu;
-  document.getElementById('counter').textContent = (cardIdx+1) + " / " + cards.length;
-  document.getElementById('progress-label').textContent = "Карточка " + (cardIdx+1) + " из " + cards.length;
-  const pct = ((cardIdx+1)/cards.length)*100;
+  document.getElementById('card-example-ru').textContent = c.exampleTranslation;
+  document.getElementById('counter').textContent = (cardIdx+1) + " / " + filteredCards.length;
+  document.getElementById('progress-label').textContent = "Карточка " + (cardIdx+1) + " из " + filteredCards.length;
+  const pct = ((cardIdx+1)/filteredCards.length)*100;
   document.getElementById('progress-bar').style.width = pct + "%";
   document.getElementById('prev-btn').disabled = (cardIdx === 0);
-  document.getElementById('next-btn').disabled = (cardIdx === cards.length-1);
+  document.getElementById('next-btn').disabled = (cardIdx === filteredCards.length-1);
   cardEl.classList.remove('flipped');
 }
 
-cardEl.addEventListener('click', ()=>{
+cardEl.addEventListener('click', (e)=>{
+  // Предотвращаем переворот при клике по кнопкам "Знаю/Не знаю"
+  if(e.target.closest('.action-btn')) return;
   cardEl.classList.toggle('flipped');
-  speak(cards[cardIdx].word);
+  if(cardEl.classList.contains('flipped')) speak(filteredCards[cardIdx].word);
 });
 
 document.getElementById('prev-btn').addEventListener('click', (e)=>{
   e.stopPropagation();
-  if(cardIdx > 0){ cardIdx--; renderCard(); }
+  if(cardIdx > 0){ cardIdx--; renderCard(); saveProgress(); }
 });
 document.getElementById('next-btn').addEventListener('click', (e)=>{
   e.stopPropagation();
-  if(cardIdx < cards.length-1){ cardIdx++; renderCard(); }
+  if(cardIdx < filteredCards.length-1){ cardIdx++; renderCard(); saveProgress(); }
 });
+
+// Обработка кнопок "Знаю/Не знаю"
+function handleMark(status) {
+  const c = filteredCards[cardIdx];
+  const prevStatus = progress.marks[c.word];
+  
+  if (prevStatus !== status) {
+    if (status === 'known') {
+      progress.stats.correct++;
+      if (prevStatus === 'unknown') progress.stats.incorrect = Math.max(0, progress.stats.incorrect - 1);
+    } else {
+      progress.stats.incorrect++;
+      if (prevStatus === 'known') progress.stats.correct = Math.max(0, progress.stats.correct - 1);
+    }
+    progress.marks[c.word] = status;
+  }
+  
+  updateStatsUI();
+  
+  // Переход к следующей карточке
+  if (cardIdx < filteredCards.length - 1) {
+    cardIdx++;
+    renderCard();
+    saveProgress();
+  } else {
+    toast("Вы прошли все карточки в этой теме!");
+    saveProgress();
+  }
+}
+
+document.getElementById('know-btn').addEventListener('click', (e) => { e.stopPropagation(); handleMark('known'); });
+document.getElementById('dont-know-btn').addEventListener('click', (e) => { e.stopPropagation(); handleMark('unknown'); });
+
 
 let touchStartX = 0;
 cardEl.addEventListener('touchstart', (e)=>{ touchStartX = e.touches[0].clientX; }, {passive:true});
 cardEl.addEventListener('touchend', (e)=>{
+  // Игнорируем свайп, если действия были с кнопками
+  if (e.target.closest('.action-btn')) return;
   const dx = e.changedTouches[0].clientX - touchStartX;
   if(Math.abs(dx) > 60){
-    if(dx < 0 && cardIdx < cards.length-1){ cardIdx++; renderCard(); }
-    else if(dx > 0 && cardIdx > 0){ cardIdx--; renderCard(); }
+    if(dx < 0 && cardIdx < filteredCards.length-1){ cardIdx++; renderCard(); saveProgress(); }
+    else if(dx > 0 && cardIdx > 0){ cardIdx--; renderCard(); saveProgress(); }
   }
 }, {passive:true});
 
-renderCard();
+/* ===== BACKUP / RESTORE ===== */
+document.getElementById('save-btn').addEventListener('click', () => {
+  const dataStr = JSON.stringify(progress, null, 2);
+  const blob = new Blob([dataStr], {type: "application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `linguaflip_backup_${CURRENT_LANG.code}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("Прогресс сохранен в файл");
+});
+
+document.getElementById('load-btn').addEventListener('click', () => {
+  document.getElementById('file-input').click();
+});
+
+document.getElementById('file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    try {
+      const data = JSON.parse(event.target.result);
+      if (confirm("Восстановить прогресс из файла? Текущие данные будут заменены.")) {
+        progress = data;
+        if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
+        if (!progress.marks) progress.marks = {};
+        saveProgress();
+        loadProgress(); // Обновляем UI
+        renderTopicChips();
+        renderCard();
+        toast("Прогресс восстановлен");
+      }
+    } catch(err) {
+      toast("Ошибка: неверный файл");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // Сбросить инпут
+});
 
 /* ===== VIEW SWITCHING ===== */
 const tabs = document.querySelectorAll('.nav-tab');
@@ -763,34 +446,34 @@ const verbChipsContainer = document.getElementById('verb-chips');
 let currentVerb = "work";
 let currentMode = "view";
 
-function renderChips(type) {
+function renderVerbChips(type) {
   verbChipsContainer.innerHTML = '';
   if (type === 'verbs') {
-    Object.keys(verbs).forEach((v, i) => {
+    Object.keys(verbs).forEach((v) => {
       const chip = document.createElement('button');
-      chip.className = 'verb-chip' + (v === currentVerb ? ' active' : '');
+      chip.className = 'chip' + (v === currentVerb ? ' active' : '');
       chip.dataset.verb = v;
       chip.innerHTML = `${v} <small>${verbs[v].regular ? 'прав.' : 'неправ.'}</small>`;
       verbChipsContainer.appendChild(chip);
     });
   } else {
     const chip = document.createElement('div');
-    chip.className = 'verb-chip';
+    chip.className = 'chip';
     chip.style.opacity = '0.5';
     chip.style.cursor = 'default';
     chip.textContent = 'Скоро...';
     verbChipsContainer.appendChild(chip);
   }
+  scrollToActiveChip(verbChipsContainer); 
 }
 
 tableTypeSelect.addEventListener('change', (e) => {
   const newType = e.target.value;
-  renderChips(newType);
+  renderVerbChips(newType);
   if (newType === 'verbs') {
     currentVerb = Object.keys(verbs)[0];
     renderTable();
   } else {
-    // Очистка таблицы и скрытие панели ввода для будущих типов
     document.getElementById('verbs-table').innerHTML = '';
     document.getElementById('input-panel').style.display = 'none';
     document.getElementById('table-hint').textContent = 'Раздел в разработке';
@@ -798,15 +481,12 @@ tableTypeSelect.addEventListener('change', (e) => {
 });
 
 verbChipsContainer.addEventListener('click', (e) => {
-  const chip = e.target.closest('.verb-chip');
+  const chip = e.target.closest('.chip');
   if(!chip || !chip.dataset.verb) return;
-  
   const newVerb = chip.dataset.verb;
   if (newVerb === currentVerb) return;
-  
-  verbChipsContainer.querySelectorAll('.verb-chip').forEach(c => c.classList.remove('active'));
+  verbChipsContainer.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   chip.classList.add('active');
-  
   currentVerb = newVerb;
   renderTable();
 });
@@ -820,7 +500,6 @@ const answerInput = document.getElementById('answer-input');
 const checkBtn = document.getElementById('check-btn');
 const feedbackEl = document.getElementById('feedback');
 const skipBtn = document.getElementById('skip-btn');
-
 let inputTarget = null;
 
 function renderTable(){
@@ -831,9 +510,7 @@ function renderTable(){
     html += `<tr><th>${p.label}</th>`;
     tenses.forEach(t=>{
       const form = buildForm(currentVerb, p.key, t.key);
-      html += `<td><div class="cell" data-pron="${p.key}" data-tense="${t.key}" data-form="${form}">
-        <span class="text">${form}</span>
-      </div></td>`;
+      html += `<td><div class="cell" data-pron="${p.key}" data-tense="${t.key}" data-form="${form}"><span class="text">${form}</span></div></td>`;
     });
     html += "</tr>";
   });
@@ -865,9 +542,7 @@ tableEl.addEventListener('click', (e)=>{
     speak(cell.dataset.form);
   } else if(currentMode === "self"){
     cell.classList.toggle('revealed');
-    if(cell.classList.contains('revealed')){
-      speak(cell.dataset.form);
-    }
+    if(cell.classList.contains('revealed')) speak(cell.dataset.form);
   }
 });
 
@@ -896,19 +571,13 @@ function checkAnswer(){
   if(!inputTarget) return;
   const correct = buildForm(currentVerb, inputTarget.pronKey, inputTarget.tenseKey);
   const user = answerInput.value.trim().toLowerCase();
-  if(!user){
-    toast("Введи ответ");
-    return;
-  }
+  if(!user){ toast("Введи ответ"); return; }
   if(user === correct.toLowerCase()){
     feedbackEl.textContent = "Верно! " + correct;
     feedbackEl.className = "feedback ok";
     speak(correct);
     highlightCell(inputTarget.pronKey, inputTarget.tenseKey, true);
-    setTimeout(()=>{
-      highlightCell(inputTarget.pronKey, inputTarget.tenseKey, false);
-      nextInputTarget();
-    }, 1400);
+    setTimeout(()=>{ highlightCell(inputTarget.pronKey, inputTarget.tenseKey, false); nextInputTarget(); }, 1400);
   } else {
     feedbackEl.textContent = "Не совсем. Правильно: " + correct;
     feedbackEl.className = "feedback err";
@@ -920,27 +589,19 @@ function checkAnswer(){
 function highlightCell(pronKey, tenseKey, on){
   const cell = tableEl.querySelector(`.cell[data-pron="${pronKey}"][data-tense="${tenseKey}"]`);
   if(!cell) return;
-  if(on){
-    cell.classList.add('revealed');
-    cell.style.background = "#fdf0e0";
-  } else {
-    cell.classList.remove('revealed');
-    cell.style.background = "";
-  }
+  if(on){ cell.classList.add('revealed'); cell.style.background = "#fdf0e0"; } 
+  else { cell.classList.remove('revealed'); cell.style.background = ""; }
 }
 
 checkBtn.addEventListener('click', checkAnswer);
-answerInput.addEventListener('keydown', (e)=>{
-  if(e.key === "Enter") checkAnswer();
-});
-skipBtn.addEventListener('click', ()=>{
-  feedbackEl.textContent = "";
-  feedbackEl.className = "feedback";
-  nextInputTarget();
-});
+answerInput.addEventListener('keydown', (e)=>{ if(e.key === "Enter") checkAnswer(); });
+skipBtn.addEventListener('click', ()=>{ feedbackEl.textContent = ""; feedbackEl.className = "feedback"; nextInputTarget(); });
 
-/* ===== Инициализация ===== */
-renderChips('verbs');
+/* ===== INIT ===== */
+loadProgress();
+renderTopicChips();
+renderCard();
+renderVerbChips('verbs');
 renderTable();
 
 document.body.addEventListener('touchstart', function once(){
@@ -951,12 +612,9 @@ document.body.addEventListener('touchstart', function once(){
   document.body.removeEventListener('touchstart', once);
 }, {once:true});
 
-/* ===== PWA Service Worker Registration ===== */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('Service Worker registered:', reg))
-      .catch(err => console.log('Service Worker registration failed:', err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
   });
 }
 </script>
