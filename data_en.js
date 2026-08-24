@@ -173,7 +173,7 @@ const LANG_EN = {
     {topic:"work",word:"laptop",transcription:"[ˈlæp.tɒp]",translation:"ноутбук",example:"My laptop is new.",exampleTranslation:"Мой ноутбук новый."},
     {topic:"work",word:"printer",transcription:"[ˈprɪn.tər]",translation:"принтер",example:"The printer is broken.",exampleTranslation:"Принтер сломан."},
     {topic:"work",word:"phone",transcription:"[fəʊn]",translation:"телефон",example:"Answer the phone.",exampleTranslation:"Ответь на телефон."},
-    {topic:"work",word:"email",transcription:"[ˈiː.meɪl]",translation:"email",example:"Send an email.",exampleTranslation:"Отправь email."},
+    {topic:"work",word:"email",transcription:"[ˈiː.meɪl]",translation:"электронное письмо",example:"Send an email.",exampleTranslation:"Отправь электронное письмо."},
     {topic:"work",word:"document",transcription:"[ˈdɒk.jə.mənt]",translation:"документ",example:"Sign the document.",exampleTranslation:"Подпиши документ."},
     {topic:"work",word:"file",transcription:"[faɪl]",translation:"файл",example:"Save the file.",exampleTranslation:"Сохрани файл."},
     {topic:"work",word:"folder",transcription:"[ˈfəʊl.dər]",translation:"папка",example:"Open the folder.",exampleTranslation:"Открой папку."},
