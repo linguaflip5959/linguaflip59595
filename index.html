@@ -29,12 +29,17 @@
     <h1>Lingua<em>Flip</em></h1>
   </div>
   <div class="header-actions">
+    <button class="icon-btn level-btn" id="level-btn" aria-label="Уровень сложности">A1</button>
+    <button class="icon-btn" id="reverse-toggle" aria-label="Сменить направление">⇄</button>
+    <button class="icon-btn" id="constructor-toggle" aria-label="Конструктор фраз">🧩</button>
     <span class="counter" id="counter">1 / 10</span>
     <span class="stats" id="stats-badge"><span class="ok">0</span> / <span class="err">0</span></span>
     <button class="icon-btn" id="theme-toggle" aria-label="Сменить тему">
       <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
+    <button class="icon-btn" id="gift-btn" aria-label="Ввести код поддержки">🎁</button>
+    <button class="icon-btn" id="donate-btn" aria-label="Поддержать проект">❤</button>
     <button class="icon-btn" id="save-btn" aria-label="Сохранить прогресс">⬇</button>
     <button class="icon-btn" id="load-btn" aria-label="Восстановить прогресс">⬆</button>
     <input type="file" id="file-input" accept=".json" style="display:none">
@@ -55,24 +60,46 @@
       <div class="card" id="card">
         <div class="face front">
           <div>
-            <div class="card-tag">Слово</div>
+            <div class="card-tag" id="front-tag">Слово</div>
             <div class="word" id="card-word">—</div>
             <div class="transcription" id="card-trans">—</div>
+            
+            <input type="text" id="practice-input" class="practice-input" placeholder="Введи слово..." style="display:none;">
+            
+            <div id="constructor-ui" style="display:none;">
+              <div class="grammar-hint">
+                <span class="gh-subj">Subject</span> + <span class="gh-verb">Verb</span> + <span class="gh-obj">Object</span>
+              </div>
+              <div class="constructor-answer" id="constructor-answer"></div>
+              <div class="constructor-chips" id="constructor-chips"></div>
+            </div>
           </div>
-          <div class="hint"><span class="dot"></span> нажми, чтобы перевернуть</div>
+          
+          <button class="action-btn practice-btn" id="practice-btn" style="display:none;">Проверить</button>
+          <button class="action-btn practice-btn" id="constructor-check-btn" style="display:none;">Проверить фразу</button>
+          <div class="hint" id="card-hint"><span class="dot"></span> нажми, чтобы перевернуть</div>
         </div>
         <div class="face back">
           <div>
-            <div class="card-tag">Перевод</div>
+            <div class="card-tag" id="back-tag">Перевод</div>
             <div class="translation" id="card-translation">—</div>
+            <div class="transcription" id="card-trans-back" style="display:none; margin-top: 4px;">—</div>
           </div>
           <div class="example-block">
             <div class="example-en" id="card-example">—</div>
             <div class="example-ru" id="card-example-ru">—</div>
           </div>
-          <div class="card-actions">
+          
+          <div class="card-actions binary-actions" id="binary-actions">
             <button class="action-btn dont-know-btn" id="dont-know-btn">Не знаю</button>
             <button class="action-btn know-btn" id="know-btn">Знаю</button>
+          </div>
+          
+          <div class="card-actions srs-actions" id="srs-actions" style="display: none;">
+            <button class="srs-btn srs-again" data-grade="1">Снова</button>
+            <button class="srs-btn srs-hard" data-grade="2">Трудно</button>
+            <button class="srs-btn srs-good" data-grade="3">Хорошо</button>
+            <button class="srs-btn srs-easy" data-grade="4">Легко</button>
           </div>
         </div>
       </div>
