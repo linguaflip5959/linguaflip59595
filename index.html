@@ -28,20 +28,32 @@
     <img src="icon-192.png" alt="LinguaFlip" class="brand-logo">
     <h1>Lingua<em>Flip</em></h1>
   </div>
-  <div class="header-actions">
+    <div class="header-actions">
     <button class="icon-btn level-btn" id="level-btn" aria-label="Уровень сложности">A1</button>
-    <button class="icon-btn" id="reverse-toggle" aria-label="Сменить направление">⇄</button>
-    <button class="icon-btn" id="constructor-toggle" aria-label="Конструктор фраз">🧩</button>
+    <button class="icon-btn" id="reverse-toggle" aria-label="Сменить направление">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+    </button>
+    <button class="icon-btn" id="constructor-toggle" aria-label="Конструктор фраз">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.439 7.85c-.049.322.059.648.289.878l1.568 1.568c.47.47.706 1.087.706 1.704s-.235 1.233-.706 1.704l-1.611 1.611a.98.98 0 0 1-.837.276c-.47-.07-.802-.48-.968-.925a2.501 2.501 0 1 0-3.214 3.214c.446.166.855.498.925.968a.98.98 0 0 1-.276.837l-1.61 1.61a2.404 2.404 0 0 1-1.705.707 2.402 2.402 0 0 1-1.704-.706l-1.568-1.568a1.026 1.026 0 0 0-.877-.29c-.493.074-.84.504-1.02.968a2.5 2.5 0 1 1-3.237-3.237c.464-.18.894-.527.967-1.02a1.026 1.026 0 0 0-.289-.877l-1.568-1.568A2.402 2.402 0 0 1 1.998 12c0-.617.236-1.234.706-1.704L4.23 8.77c.24-.24.581-.353.917-.303.515.077.877.528 1.073 1.01a2.5 2.5 0 1 0 3.259-3.259c-.482-.196-.933-.558-1.01-1.073-.05-.336.062-.676.303-.917l1.525-1.525A2.402 2.402 0 0 1 12 1.998c.617 0 1.234.236 1.704.706l1.568 1.568c.23.23.556.338.877.29.493-.074.84-.504 1.02-.968a2.5 2.5 0 1 1 3.237 3.237c-.464.18-.894.527-.967 1.02Z"></path></svg>
+    </button>
     <span class="counter" id="counter">1 / 10</span>
     <span class="stats" id="stats-badge"><span class="ok">0</span> / <span class="err">0</span></span>
     <button class="icon-btn" id="theme-toggle" aria-label="Сменить тему">
       <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
     </button>
-    <button class="icon-btn" id="gift-btn" aria-label="Ввести код поддержки">🎁</button>
-    <button class="icon-btn" id="donate-btn" aria-label="Поддержать проект">❤</button>
-    <button class="icon-btn" id="save-btn" aria-label="Сохранить прогресс">⬇</button>
-    <button class="icon-btn" id="load-btn" aria-label="Восстановить прогресс">⬆</button>
+    <button class="icon-btn" id="gift-btn" aria-label="Ввести код поддержки">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>
+    </button>
+    <button class="icon-btn" id="donate-btn" aria-label="Поддержать проект">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+    </button>
+    <button class="icon-btn" id="save-btn" aria-label="Сохранить прогресс">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+    </button>
+    <button class="icon-btn" id="load-btn" aria-label="Восстановить прогресс">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+    </button>
     <input type="file" id="file-input" accept=".json" style="display:none">
   </div>
 </header>
@@ -173,5 +185,14 @@
 
 <script src="./data_en.js"></script>
 <script src="./app.js" defer></script>
+<div class="celebration-overlay" id="celebration-overlay">
+  <div class="celebration-card">
+    <div class="celebration-icon">🎉</div>
+    <h2>Тема пройдена!</h2>
+    <p>Вы отметили все слова в этой теме как изученные. Отличная работа!</p>
+    <button class="check-btn" id="celebration-close">Продолжить</button>
+  </div>
+  <div class="confetti-container" id="confetti-container"></div>
+</div>
 </body>
 </html>

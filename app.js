@@ -153,6 +153,7 @@ function loadProgress() {
       if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
       if (!progress.marks) progress.marks = {};
       if (!progress.unlockedAnimations) progress.unlockedAnimations = [];
+      if (!progress.celebratedTopics) progress.celebratedTopics = [];
 
       for (let word in progress.marks) {
         if (typeof progress.marks[word] === "string") {
@@ -226,7 +227,62 @@ function updateTopicProgressBar() {
   });
   const percent =
     totalCardsInTopic > 0 ? (markedCards / totalCardsInTopic) * 100 : 0;
-  document.getElementById("topic-progress-fill").style.width = percent + "%";
+  const progressBar = document.getElementById("topic-progress-fill");
+  if (progressBar) progressBar.style.width = percent + "%";
+
+  // Проверка на 100% завершение темы
+  if (totalCardsInTopic > 0 && markedCards === totalCardsInTopic) {
+    if (!progress.celebratedTopics) progress.celebratedTopics = [];
+    if (!progress.celebratedTopics.includes(currentTopic)) {
+      progress.celebratedTopics.push(currentTopic);
+      triggerCelebration();
+    }
+  }
+}
+
+function triggerCelebration() {
+  const overlay = document.getElementById("celebration-overlay");
+  const confettiContainer = document.getElementById("confetti-container");
+
+  if (!overlay || !confettiContainer) return;
+
+  overlay.classList.add("show");
+
+  // Обновляем чипы, чтобы появилась зеленая галочка
+  renderTopicChips();
+
+  confettiContainer.innerHTML = "";
+  const colors = ["#c2410c", "#e57238", "#3f6b3a", "#d9cdb6", "#f4ede2"];
+  for (let i = 0; i < 50; i++) {
+    const piece = document.createElement("div");
+    piece.className = "confetti-piece";
+    piece.style.left = Math.random() * 100 + "%";
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = Math.random() * 3 + 2 + "s";
+    piece.style.animationDelay = Math.random() * 2 + "s";
+    if (Math.random() > 0.5) piece.style.borderRadius = "50%";
+    confettiContainer.appendChild(piece);
+  }
+}
+
+// Обработчик закрытия окна победы
+const celebrationCloseBtn = document.getElementById("celebration-close");
+if (celebrationCloseBtn) {
+  celebrationCloseBtn.addEventListener("click", () => {
+    const overlay = document.getElementById("celebration-overlay");
+    if (overlay) overlay.classList.remove("show");
+
+    // Автоматически переключаемся на "Все темы"
+    currentTopic = "all";
+    cardIdx = 0;
+    updateFilteredCards();
+    renderTopicChips();
+    renderCard();
+    saveProgress();
+
+    // Показываем подсказку, что мы переключились
+    setTimeout(() => toast("Переключились на «Все темы»"), 300);
+  });
 }
 
 const topicChipsContainer = document.getElementById("topic-chips");
@@ -234,9 +290,29 @@ function renderTopicChips() {
   topicChipsContainer.innerHTML = "";
   topics.forEach((t) => {
     const chip = document.createElement("button");
-    chip.className = "chip" + (t.key === currentTopic ? " active" : "");
+    let classes = "chip";
+    if (t.key === currentTopic) classes += " active";
+
+    // Проверяем, пройдена ли тема (не считаем "all" и "difficult")
+    if (
+      progress.celebratedTopics &&
+      progress.celebratedTopics.includes(t.key) &&
+      t.key !== "all" &&
+      t.key !== "difficult"
+    ) {
+      classes += " completed";
+    }
+
+    chip.className = classes;
     chip.dataset.topic = t.key;
-    chip.textContent = t.label;
+
+    // Добавляем галочку, если тема пройдена
+    if (classes.includes("completed")) {
+      chip.innerHTML = `${t.label} <small>✓</small>`;
+    } else {
+      chip.textContent = t.label;
+    }
+
     topicChipsContainer.appendChild(chip);
   });
   scrollToActiveChip(topicChipsContainer);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "linguaflip-cache-v1.3";
+const CACHE_NAME = "linguaflip-cache-v1.4";
 const ASSETS = [
   "./",
   "./index.html",
@@ -38,6 +38,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (!event.request.url.startsWith("http")) return;
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
