@@ -24,15 +24,67 @@
 </head>
 <body>
 
+<!-- Космический фон -->
+<div id="cosmos-bg" style="display:none;">
+  <div id="stars"></div>
+  <div class="shoot s1"></div>
+  <div class="shoot s2"></div>
+  <div class="planet planet-a"></div>
+  <div class="planet planet-b"></div>
+</div>
+
+<!-- Лесной фон -->
+<div id="forest-bg" style="display:none;">
+  <div class="sunspot sp1"></div>
+  <div class="sunspot sp2"></div>
+  <div class="sunspot sp3"></div>
+  <div id="leaves"></div>
+  <svg class="treeline" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path fill="currentColor" d="M0 200 L0 150 L40 150 L70 60 L100 150 L120 150 L145 95 L170 150 L200 150 L240 40 L280 150 L305 150 L330 100 L355 150 L390 150 L425 70 L460 150 L490 150 L515 110 L540 150 L575 150 L615 30 L655 150 L685 150 L710 95 L735 150 L770 150 L800 60 L830 150 L860 150 L890 105 L920 150 L955 150 L990 45 L1025 150 L1055 150 L1080 100 L1105 150 L1140 150 L1170 70 L1200 150 L1200 200 Z"/>
+  </svg>
+</div>
+
+<!-- Океанский фон -->
+<div id="ocean-bg" style="display:none;">
+  <div class="ray r1"></div>
+  <div class="ray r2"></div>
+  <div class="ray r3"></div>
+  <div id="bubbles"></div>
+  
+  <svg class="drift d1" viewBox="0 0 48 24" aria-hidden="true">
+    <path d="M8 12c4-6 10-8.5 16-8.5S36 6 41 12c-5 6-11 8.5-17 8.5S12 18 8 12z" fill="currentColor"/>
+    <path d="M8 12 1.5 5.5v13z" fill="currentColor"/>
+    <circle cx="33" cy="9.5" r="1.6" fill="var(--bg)"/>
+  </svg>
+  <svg class="drift d2" viewBox="0 0 48 24" aria-hidden="true">
+    <path d="M8 12c4-6 10-8.5 16-8.5S36 6 41 12c-5 6-11 8.5-17 8.5S12 18 8 12z" fill="currentColor"/>
+    <path d="M8 12 1.5 5.5v13z" fill="currentColor"/>
+    <circle cx="33" cy="9.5" r="1.6" fill="var(--bg)"/>
+  </svg>
+
+  <svg class="seabed" viewBox="0 0 900 160" preserveAspectRatio="none" aria-hidden="true">
+    <path fill="currentColor" d="M0 160 L0 128 Q90 106 180 124 T360 120 T540 130 T720 116 T900 126 L900 160 Z"/>
+    <g stroke="currentColor" stroke-width="5" stroke-linecap="round" fill="none" opacity=".55">
+      <path d="M95 128 q10 -26 -4 -48 q-11 -20 3 -42"/>
+      <path d="M118 130 q-9 -22 3 -40 q10 -17 -2 -36"/>
+      <path d="M760 122 q10 -24 -3 -44 q-10 -18 3 -38"/>
+      <path d="M785 124 q-8 -20 3 -38 q9 -15 -2 -32"/>
+    </g>
+  </svg>
+</div>
+
 <header>
-   <button class="icon-btn menu-fab" id="menu-btn" aria-label="Меню и настройки">
+  <button class="icon-btn menu-fab" id="menu-btn" aria-label="Меню и настройки">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
   </button>
   <div class="brand">
-    <img src="icon-192.png" alt="LinguaFlip" class="brand-logo">
+    <div class="logo">
+      <div class="logo-orbit"></div>
+      <img src="icon-192.png" alt="LinguaFlip" class="brand-logo">
+    </div>
     <h1>Lingua<em>Flip</em></h1>
   </div>
-      <div class="header-actions">
+  <div class="header-actions">
     <button class="icon-btn level-btn" id="level-btn" aria-label="Уровень сложности">A1</button>
     <button class="icon-btn" id="reverse-toggle" aria-label="Сменить направление">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
@@ -216,7 +268,14 @@
         <select id="animation-select" class="settings-select">
           <option value="none">По умолчанию</option>
         </select>
+
+        <h3 style="margin-top: 16px;">Цветовая тема</h3>
+        <select id="theme-select" class="settings-select">
+          <option value="none">По умолчанию (Тёплая)</option>
+        </select>
       </div>
+
+
 
       <div class="stats-section">
         <h3>Настройки</h3>

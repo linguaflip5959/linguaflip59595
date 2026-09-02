@@ -280,3 +280,373 @@ html.dark .card.anim-cyber-reveal .face.back {
 
 .effect-border:hover::before { height: 100%; }
 .effect-border:hover::after { width: 100%; }
+
+/* ===== ЦВЕТОВЫЕ ТЕМЫ ===== */
+
+/* ===== ТЕМА: ОКЕАН (С анимированным фоном) ===== */
+html.theme-ocean {
+  /* Светлая версия Океана */
+  --bg: #eef7fb;
+  --bg2: #d8eff1;
+  --paper: #ffffff;
+  --ink: #0b3550;
+  --ink-soft: #075985;
+  --muted: #0284c7;
+  --line: #bae6fd;
+  --accent: #0e9aa7; /* Бирюзовый */
+  --accent-light: #35d0c0; /* Аква */
+  --accent-soft: #cffafe;
+  --ok: #0e9aa7;
+  --err: #ff7e6b;
+
+  --body-gradient-1: rgba(53, 208, 192, 0.2);
+  --body-gradient-2: rgba(14, 154, 167, 0.1);
+  --front-card-gradient: #ffffff;
+  --back-card-bg-1: #e0f7fa;
+  --back-card-bg-2: #b2ebf2;
+  --back-card-text: #004d5b;
+  --back-card-tag: #00838f;
+  --back-card-glow-1: rgba(53, 208, 192, 0.2);
+  --back-card-glow-2: rgba(255, 255, 255, 0.3);
+  --example-highlight: #0e9aa7;
+  --example-ru: #075985;
+
+  --input-bg-1: #ffffff;
+  --input-bg-2: #eef7fb;
+  --input-coord: #0e9aa7;
+  --input-subtext: #0284c7;
+  --input-field-bg: #eef7fb;
+  --input-field-border: #bae6fd;
+  --input-field-bg-focus: #ffffff;
+  --input-placeholder: #0284c7;
+
+  --bottom-nav-bg: rgba(238, 247, 251, 0.92);
+  --bottom-nav-shadow: rgba(14, 154, 167, 0.2);
+  --shadow-color-1: rgba(14, 154, 167, 0.15);
+  --shadow-color-2: rgba(14, 154, 167, 0.05);
+  --chip-active-shadow: rgba(14, 154, 167, 0.35);
+}
+
+/* Тёмная версия Океана (Глубина) */
+html.dark.theme-ocean {
+  --bg: #051d30;
+  --bg2: #062238;
+  --paper: #0c3050;
+  --ink: #e6f4f7;
+  --ink-soft: #8fb0c0;
+  --muted: #6f90a3;
+  --line: rgba(150, 190, 210, 0.22);
+  --accent: #35d0c0;
+  --accent-light: #5ce6d2;
+  --accent-soft: #0c3050;
+
+  --body-gradient-1: rgba(38, 160, 190, 0.4);
+  --body-gradient-2: rgba(6, 60, 90, 0.6);
+  --front-card-gradient: #0c3050;
+  --back-card-bg-1: #093854;
+  --back-card-bg-2: #061f33;
+  --back-card-text: #e9f7f8;
+  --back-card-tag: #35d0c0;
+  --back-card-glow-1: rgba(53, 208, 192, 0.15);
+  --back-card-glow-2: rgba(53, 208, 192, 0.05);
+  --example-highlight: #f2c979; /* Песочный */
+  --example-ru: #8fb0c0;
+
+  --input-bg-1: #0c3050;
+  --input-bg-2: #062238;
+  --input-coord: #35d0c0;
+  --input-subtext: #8fb0c0;
+  --input-field-bg: rgba(53, 208, 192, 0.08);
+  --input-field-border: rgba(53, 208, 192, 0.15);
+  --input-field-bg-focus: rgba(53, 208, 192, 0.12);
+  --input-placeholder: #4c718c;
+
+  --bottom-nav-bg: rgba(12, 42, 66, 0.92);
+  --bottom-nav-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-color-1: rgba(0, 0, 0, 0.6);
+  --shadow-color-2: rgba(0, 0, 0, 0.4);
+  --chip-active-shadow: rgba(53, 208, 192, 0.35);
+}
+
+/* === АНИМИРОВАННЫЙ ОКЕАНСКИЙ ФОН === */
+html.theme-ocean #ocean-bg { display: block !important; }
+
+#ocean-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; color: var(--accent); }
+
+/* Световые лучи */
+.ray { position: fixed; top: -90px; z-index: -1; width: 120px; height: 72vh; filter: blur(14px); background: linear-gradient(180deg, rgba(255,255,255,.16), transparent 82%); animation: raySway 8s ease-in-out infinite alternate; }
+.r1 { left: 12%; }
+.r2 { left: 48%; width: 80px; animation-delay: 2.5s; opacity: .7; }
+.r3 { left: 74%; width: 58px; animation-delay: 4.2s; opacity: .5; }
+@keyframes raySway { from { transform: skewX(-14deg) translateX(-12px); opacity: .45; } to { transform: skewX(-9deg) translateX(14px); opacity: .85; } }
+
+/* Пузырьки */
+#bubbles { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+#bubbles i { position: absolute; bottom: -24px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), rgba(255,255,255,.06) 62%); border: 1px solid rgba(255,255,255,.28); animation: rise linear infinite; }
+@keyframes rise { 0% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-28vh) translateX(11px); } 50% { transform: translateY(-56vh) translateX(-9px); } 75% { transform: translateY(-84vh) translateX(11px); } 100% { transform: translateY(-114vh) translateX(0); } }
+
+/* Плывущие рыбки */
+.drift { position: fixed; z-index: -1; pointer-events: none; animation: drift linear infinite; color: var(--accent-light); }
+.d1 { top: 58%; width: 46px; opacity: .35; animation-duration: 34s; }
+.d2 { top: 24%; width: 28px; opacity: .22; animation-duration: 48s; animation-delay: -22s; }
+@keyframes drift { 0% { transform: translateX(-14vw) translateY(0); } 25% { transform: translateX(18vw) translateY(-14px); } 50% { transform: translateX(50vw) translateY(7px); } 75% { transform: translateX(82vw) translateY(-10px); } 100% { transform: translateX(116vw) translateY(0); } }
+
+/* Морское дно */
+.seabed { position: fixed; left: 0; right: 0; bottom: -4px; width: 100%; height: 150px; z-index: -1; pointer-events: none; opacity: 0.2; color: var(--accent); }
+html.dark.theme-ocean .seabed { opacity: 0.6; }
+
+/* Орбита вокруг логотипа (Пузырек) */
+html.theme-ocean .logo-orbit::before {
+  background: radial-gradient(circle at 32% 30%, rgba(255,255,255,.85), rgba(255,255,255,.15));
+  border: 1px solid rgba(255,255,255,.5);
+  box-shadow: 0 0 8px 2px rgba(180,240,255,.5);
+}
+
+/* ===== ТЕМА: ЛЕС (С анимированным фоном) ===== */
+html.theme-forest {
+  --bg: #f1f3e6;
+  --bg2: #e9edda;
+  --paper: #fdfcf5;
+  --ink: #22382a;
+  --ink-soft: #24402f;
+  --muted: #71816b;
+  --line: #d9dec6;
+  --accent: #1d5c40; /* Сосновый зеленый */
+  --accent-light: #2c7a4b; /* Лист */
+  --accent-soft: #e2eed8;
+  --ok: #059669;
+  --err: #b91c1c;
+
+  --body-gradient-1: rgba(224, 165, 46, 0.16); /* Солнечный свет */
+  --body-gradient-2: rgba(125, 170, 90, 0.18); /* Росток */
+  --front-card-gradient: #f5fdf5;
+  --back-card-bg-1: rgb(128, 189, 150); /* Светлый весенний зеленый */
+  --back-card-bg-2: #8bdfa8; /* Немного темнее к краям */
+  --back-card-text: #14532d; /* Темно-зеленый текст для контраста */
+  --back-card-tag: #15803d;
+  --back-card-glow-1: rgba(22, 163, 74, 0.12);
+  --back-card-glow-2: rgba(22, 163, 74, 0.06);
+  --example-highlight: #16a34a; /* Зеленый акцент для выделенного слова */
+  --example-ru: #166534;
+
+  --input-bg-1: #fdfcf5;
+  --input-bg-2: #f1f3e6;
+  --input-coord: #1d5c40;
+  --input-subtext: #71816b;
+  --input-field-bg: #f1f3e6;
+  --input-field-border: #d9dec6;
+  --input-field-bg-focus: #fdfcf5;
+  --input-placeholder: #71816b;
+
+  --bottom-nav-bg: rgba(241, 243, 230, 0.92);
+  --bottom-nav-shadow: rgba(34, 56, 42, 0.2);
+  --shadow-color-1: rgba(34, 56, 42, 0.15);
+  --shadow-color-2: rgba(34, 56, 42, 0.05);
+  --chip-active-shadow: rgba(29, 92, 64, 0.35);
+}
+
+/* Тёмная версия Леса (Ночной лес) */
+html.dark.theme-forest {
+  --bg: #0a1f0e;
+  --bg2: #0f2a14;
+  --paper: #0f2a14;
+  --ink: #dcfce7;
+  --ink-soft: #bbf7d0;
+  --muted: #4ade80;
+  --line: #14532d;
+  --accent: #4ade80;
+  --accent-light: #86efac;
+  --accent-soft: #14532d;
+
+  --body-gradient-1: rgba(74, 222, 128, 0.15);
+  --body-gradient-2: rgba(15, 42, 20, 0.5);
+  --front-card-gradient: #0f2a14;
+  --back-card-bg-1: #14532d; /* Глубокий хвойный зеленый */
+  --back-card-bg-2: #0f2a14; /* Ночной лес, но не угольно-черный */
+  --back-card-text: #dcfce7; /* Светлый текст */
+  --back-card-tag: #4ade80;
+  --back-card-glow-1: rgba(74, 222, 128, 0.15);
+  --back-card-glow-2: rgba(74, 222, 128, 0.05);
+  --example-highlight: #86efac; /* Светло-зеленый неон для выделения */
+  --example-ru: #4ade80;
+
+  --input-bg-1: #0f2a14;
+  --input-bg-2: #0a1f0e;
+  --input-coord: #86efac;
+  --input-subtext: #4ade80;
+  --input-field-bg: rgba(74, 222, 128, 0.08);
+  --input-field-border: rgba(74, 222, 128, 0.15);
+  --input-field-bg-focus: rgba(74, 222, 128, 0.12);
+  --input-placeholder: #15803d;
+
+  --bottom-nav-bg: rgba(15, 42, 20, 0.92);
+  --bottom-nav-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-color-1: rgba(0, 0, 0, 0.6);
+  --shadow-color-2: rgba(0, 0, 0, 0.4);
+  --chip-active-shadow: rgba(74, 222, 128, 0.35);
+}
+
+/* === АНИМИРОВАННЫЙ ЛЕСНОЙ ФОН === */
+html.theme-forest #forest-bg { display: block !important; }
+
+#forest-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; color: #1d5c40; }
+
+/* Солнечные пятна */
+.sunspot { position: fixed; border-radius: 50%; filter: blur(26px); background: radial-gradient(circle, rgba(240,196,84,.4), transparent 70%); animation: breathe 9s ease-in-out infinite alternate; }
+.sp1 { width: 220px; height: 220px; top: 7%; left: -70px; }
+.sp2 { width: 270px; height: 270px; top: 36%; right: -100px; animation-delay: 3s; }
+.sp3 { width: 180px; height: 180px; bottom: 22%; left: 16%; animation-delay: 5.5s; }
+@keyframes breathe { from { opacity: .35; transform: scale(1); } to { opacity: .75; transform: scale(1.12); } }
+
+/* Падающие листья */
+#leaves { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+#leaves i { position: absolute; top: -24px; border-radius: 0 62% 0 62%; box-shadow: 0 1px 2px rgba(34,56,42,.15); animation: fall linear infinite; }
+@keyframes fall { 0% { transform: translateY(-6vh) translateX(0) rotate(0deg); } 25% { transform: translateY(24vh) translateX(4vw) rotate(95deg); } 50% { transform: translateY(50vh) translateX(-3vw) rotate(185deg); } 75% { transform: translateY(76vh) translateX(4vw) rotate(275deg); } 100% { transform: translateY(106vh) translateX(-2vw) rotate(360deg); } }
+
+/* Силуэт леса внизу */
+.treeline { position: fixed; left: 0; right: 0; bottom: -6px; width: 100%; height: 160px; opacity: 0.08; color: var(--accent); }
+
+/* Орбита вокруг логотипа (Зеленый листик) */
+html.theme-forest .logo-orbit::before {
+  background: #7fae5e;
+  border-radius: 0 65% 0 65%;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px 2px rgba(127,174,94,.7);
+}
+
+/* ===== ТЕМА: КОСМОС (С анимированным фоном) ===== */
+html.theme-cosmos {
+  --bg: #070b1a;
+  --bg2: #101636;
+  --paper: #101636;
+  --ink: #e8ecff;
+  --ink-soft: #cfd4f2;
+  --muted: #8b93b8;
+  --line: rgba(140, 150, 200, 0.22);
+  --accent: #8f7bf5;
+  --accent-light: #a78bfa;
+  --accent-soft: rgba(143, 123, 245, 0.18);
+  --ok: #49d6c2;
+  --err: #ff7b7b;
+
+  --body-gradient-1: rgba(124, 92, 224, 0.28);
+  --body-gradient-2: rgba(73, 214, 194, 0.10);
+  --front-card-gradient: #161d44;
+   --back-card-bg-1: #dcfce7; /* Светлый весенний зеленый */
+  --back-card-bg-2: #bbf7d0; /* Немного темнее к краям */
+  --back-card-text: #14532d; /* Темно-зеленый текст для контраста */
+  --back-card-tag: #15803d;
+  --back-card-glow-1: rgba(22, 163, 74, 0.12);
+  --back-card-glow-2: rgba(22, 163, 74, 0.06);
+  --example-highlight: #16a34a; /* Зеленый акцент для выделенного слова */
+  --example-ru: #166534;
+
+  --input-bg-1: #101636;
+  --input-bg-2: #070b1a;
+  --input-coord: #f2c14e;
+  --input-subtext: #8b93b8;
+  --input-field-bg: rgba(143, 123, 245, 0.08);
+  --input-field-border: rgba(143, 123, 245, 0.25);
+  --input-field-bg-focus: rgba(143, 123, 245, 0.15);
+  --input-placeholder: #6b21a8;
+
+  --bottom-nav-bg: rgba(16, 21, 46, 0.86);
+  --bottom-nav-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-color-1: rgba(0, 0, 0, 0.75);
+  --shadow-color-2: rgba(0, 0, 0, 0.4);
+  --chip-active-shadow: rgba(143, 123, 245, 0.45);
+}
+
+/* Подсветка логотипа */
+html.theme-cosmos .brand .brand-logo {
+  box-shadow: 0 0 20px rgba(143, 123, 245, 0.5);
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(150deg, #8f7bf5, #5a3fd0);
+}
+
+/* Чипсы в Космосе */
+html.theme-cosmos .chip.active {
+  background: linear-gradient(150deg, #8f7bf5, #5a3fd0);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 10px -3px rgba(143, 123, 245, 0.45);
+}
+
+/* Текстовые поля ввода */
+html.theme-cosmos .input-row input { color: var(--back-card-text); }
+html.theme-cosmos .input-row input::placeholder { color: #6b21a8; }
+
+/* === АНИМИРОВАННЫЙ КОСМИЧЕСКИЙ ФОН === */
+html.theme-cosmos #cosmos-bg { display: block !important; }
+
+#cosmos-bg {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+}
+
+/* Звёзды */
+#stars i {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle ease-in-out infinite alternate;
+}
+#stars i.gold { background: #f2c14e; }
+#stars i.teal { background: #49d6c2; }
+@keyframes twinkle {
+  from { opacity: 0.12; transform: scale(0.7); }
+  to { opacity: 0.95; transform: scale(1.2); }
+}
+
+/* Метеоры */
+.shoot {
+  position: fixed; z-index: -1; pointer-events: none; height: 2px; width: 140px; border-radius: 2px; opacity: 0;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+  animation: shoot 11s linear infinite;
+}
+.s1 { top: 12%; animation-delay: 2.5s; }
+.s2 { top: 56%; width: 90px; animation-delay: 8s; }
+@keyframes shoot {
+  0% { transform: translate(-16vw, 0) rotate(-14deg); opacity: 0; }
+  2.5% { opacity: 1; }
+  11% { transform: translate(72vw, 19vh) rotate(-14deg); opacity: 0; }
+  100% { transform: translate(72vw, 19vh) rotate(-14deg); opacity: 0; }
+}
+
+/* Планеты */
+.planet { position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; }
+.planet-a {
+  width: 150px; height: 150px; right: -52px; top: 110px;
+  background: radial-gradient(circle at 32% 28%, #5a4bd4, #241a63 65%, #120d33);
+  box-shadow: inset -20px -16px 44px rgba(0,0,0,.6), 0 0 60px rgba(124,108,240,.22);
+}
+.planet-a::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 225px; height: 56px;
+  border: 2px solid rgba(242, 193, 78, 0.32); border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+}
+.planet-b {
+  width: 52px; height: 52px; left: -16px; bottom: 180px; opacity: 0.85;
+  background: radial-gradient(circle at 35% 30%, #57e0c8, #157a6d 72%);
+  box-shadow: inset -8px -8px 18px rgba(0,0,0,.45), 0 0 30px rgba(73,214,194,.25);
+}
+
+/* Орбита вокруг логотипа (по умолчанию скрыта) */
+.logo { position: relative; width: 42px; height: 42px; perspective: 320px; }
+.logo .brand-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; box-shadow: 0 4px 10px -3px var(--chip-active-shadow); }
+
+.logo-orbit {
+  display: none; /* <--- СКРЫВАЕМ ОРБИТУ ДЛЯ ВСЕХ ТЕМ */
+  position: absolute; inset: -7px; border-radius: 50%; pointer-events: none;
+  animation: orbit 6.5s linear infinite;
+}
+.logo-orbit::before {
+  content: ""; position: absolute; top: -2px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px;
+  border-radius: 50%; background: #f2c14e; /* <--- ЗОЛОТОЙ ЦВЕТ СОЛНЦА */
+  box-shadow: 0 0 8px 2px rgba(242, 193, 78, 0.8); /* <--- ЗОЛОТОЕ СВЕЧЕНИЕ */
+}
+
+/* Включаем орбиту только в Космосе */
+html.theme-cosmos .logo-orbit {
+  display: block;
+}
+@keyframes orbit { to { transform: rotate(360deg); } }

@@ -20,13 +20,24 @@ const AVAILABLE_ANIMATIONS = [
   "anim-cyber-reveal"
 ];
 
+const AVAILABLE_THEMES = [
+  "theme-ocean",
+  "theme-forest",
+  "theme-cosmos"
+];
+
 const GIFT_CODES = {
   "LF-TUMBLE-2024": "anim-3d-tumble",
   "LF-BOOK-2024": "anim-page-flip",
   "LF-ZOOM-2024": "anim-zoom-flip", 
   "LF-VERT-2024": "anim-vertical-flip",
   "LF-TWIST-2024": "anim-twist-flip",
-  "LF-CYBER-2024": "anim-cyber-reveal" 
+  "LF-CYBER-2024": "anim-cyber-reveal",
+
+  // Темы
+  "LF-OCEAN-2024": "theme-ocean",
+  "LF-FOREST-2024": "theme-forest",
+  "LF-COSMOS-2024": "theme-cosmos"
 };
 
 let progress = {
@@ -34,6 +45,10 @@ let progress = {
   idx: 0,
   stats: { correct: 0, incorrect: 0 },
   marks: {},
+  unlockedAnimations: [],
+  unlockedThemes: [],
+  activeAnimation: "none",
+  activeTheme: "none"
 };
 
 const topics = [
@@ -166,6 +181,9 @@ function loadProgress() {
       if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
       if (!progress.marks) progress.marks = {};
       if (!progress.unlockedAnimations) progress.unlockedAnimations = [];
+      if (!progress.unlockedThemes) progress.unlockedThemes = [];
+      if (!progress.activeAnimation) progress.activeAnimation = "none";
+      if (!progress.activeTheme) progress.activeTheme = "none";
       if (!progress.celebratedTopics) progress.celebratedTopics = [];
 
       for (let word in progress.marks) {
@@ -187,6 +205,7 @@ function loadProgress() {
   if (cardIdx < 0 || cardIdx >= filteredCards.length) cardIdx = 0;
   updateStatsUI();
   applyCardAnimation();
+  applyTheme();
 
   document
     .getElementById("reverse-toggle")
@@ -948,19 +967,71 @@ function applyCardAnimation() {
   updateAnimationSelect();
 }
 
+function applyTheme() {
+  // Сначала удаляем все классы тем с <html>
+  AVAILABLE_THEMES.forEach(t => document.documentElement.classList.remove(t));
+  
+  const activeTheme = progress.activeTheme || 'none';
+  if (activeTheme !== 'none' && AVAILABLE_THEMES.includes(activeTheme)) {
+    document.documentElement.classList.add(activeTheme);
+    
+    // Запрашиваем генерацию эффектов, если файл effects.js подключен
+    if (window.LinguaEffects) {
+      if (activeTheme === 'theme-cosmos') {
+        window.LinguaEffects.initCosmosStars();
+      } else if (activeTheme === 'theme-forest') {
+        window.LinguaEffects.initForestLeaves();
+      }
+    }
+  }
+
+    if (window.LinguaEffects) {
+      if (activeTheme === 'theme-cosmos') {
+        window.LinguaEffects.initCosmosStars();
+      } else if (activeTheme === 'theme-forest') {
+        window.LinguaEffects.initForestLeaves();
+      } else if (activeTheme === 'theme-ocean') {
+        window.LinguaEffects.initOceanBubbles();
+      }
+    }
+  
+  updateThemeSelect();
+}
+
+function updateThemeSelect() {
+  const select = document.getElementById('theme-select');
+  if (!select) return;
+  
+  let html = '<option value="none">По умолчанию (Тёплая)</option>';
+  
+  if (!progress.unlockedThemes) progress.unlockedThemes = [];
+  
+  progress.unlockedThemes.forEach(theme => {
+    let label = theme.replace('theme-', '');
+    label = label.charAt(0).toUpperCase() + label.slice(1);
+    html += `<option value="${theme}">${label}</option>`;
+  });
+  select.innerHTML = html;
+  
+  select.value = progress.activeTheme || 'none';
+}
+
 // Новая функция для заполнения списка анимаций
 function updateAnimationSelect() {
   const select = document.getElementById('animation-select');
   if (!select) return;
   
   let html = '<option value="none">По умолчанию</option>';
+  
+  // Защита, если массива вдруг нет
+  if (!progress.unlockedAnimations) progress.unlockedAnimations = [];
+  
   progress.unlockedAnimations.forEach(anim => {
     let label = anim.replace('anim-', '').replace(/-/g, ' ');
     html += `<option value="${anim}">${label}</option>`;
   });
   select.innerHTML = html;
   
-  // Устанавливаем текущую активную
   select.value = progress.activeAnimation || 'none';
 }
 
@@ -1179,6 +1250,16 @@ if (themeToggle) {
   });
 }
 
+const themeSelect = document.getElementById('theme-select');
+if (themeSelect) {
+  themeSelect.addEventListener('change', (e) => {
+    progress.activeTheme = e.target.value;
+    saveProgress();
+    applyTheme();
+    toast("Тема применена");
+  });
+}
+
 /* ===== DONATE BUTTON (Safety Check) ===== */
 const donateModal = document.getElementById('donate-modal');
 const donateSubtext = document.getElementById('donate-subtext');
@@ -1270,21 +1351,29 @@ if (giftApplyBtn) {
     if (!code) { toast("Введите код"); return; }
     
     if (GIFT_CODES[code]) {
-      const animName = GIFT_CODES[code];
+      const reward = GIFT_CODES[code];
+      let alreadyUnlocked = false;
       
-      // Добавляем в разблокированные, если еще нет
-      if (!progress.unlockedAnimations.includes(animName)) {
-        progress.unlockedAnimations.push(animName);
-        toast('Ура! Анимация разблокирована.');
-      } else {
-        toast('Эта анимация уже была активирована.');
+      // Проверяем, что это: анимация или тема
+      if (reward.startsWith('anim-')) {
+        if (!progress.unlockedAnimations.includes(reward)) {
+          progress.unlockedAnimations.push(reward);
+          progress.activeAnimation = reward;
+          applyCardAnimation();
+          toast('Ура! Анимация разблокирована.');
+        } else alreadyUnlocked = true;
+      } else if (reward.startsWith('theme-')) {
+        if (!progress.unlockedThemes.includes(reward)) {
+          progress.unlockedThemes.push(reward);
+          progress.activeTheme = reward;
+          applyTheme();
+          toast('Ура! Тема разблокирована.');
+        } else alreadyUnlocked = true;
       }
       
-      // Сразу делаем её активной и сохраняем
-      progress.activeAnimation = animName;
-      saveProgress();
-      applyCardAnimation();
+      if (alreadyUnlocked) toast('Этот код уже был активирован.');
       
+      saveProgress();
       giftModal.classList.remove('show');
     } else {
       toast('Неверный код.');
