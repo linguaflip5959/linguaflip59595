@@ -182,6 +182,8 @@ function loadProgress() {
     .getElementById("constructor-toggle")
     .classList.toggle("active", isConstructorMode);
   document.getElementById("level-btn").textContent = currentLevel;
+
+  updateStatsModal();
 }
 
 function saveProgress() {
@@ -202,6 +204,26 @@ function updateStatsUI() {
     progress.stats.correct;
   document.querySelector("#stats-badge .err").textContent =
     progress.stats.incorrect;
+}
+
+function updateStatsModal() {
+  let knownWords = 0;
+  for (let word in progress.marks) {
+    if (progress.marks[word].box > 1) knownWords++;
+  }
+  document.getElementById('stat-known').textContent = knownWords;
+  
+  // Подсчет слов за сегодня
+  const today = new Date().toDateString();
+  let todayCount = 0;
+  if (progress.lastStudyDate === today) {
+    todayCount = progress.todayCount || 0;
+  } else {
+    progress.lastStudyDate = today;
+    progress.todayCount = 0;
+    saveProgress();
+  }
+  document.getElementById('stat-today').textContent = todayCount;
 }
 
 function updateFilteredCards() {
@@ -577,25 +599,35 @@ document.getElementById("practice-input").addEventListener("input", (e) => {
   }
 });
 
+// Обработка кнопок "Знаю / Не знаю" (режим Чтения)
 function handleMark(status) {
   if (isAnimating) return;
   const c = filteredCards[cardIdx];
   let mark = progress.marks[c.word] || { box: 1, dueDate: Date.now() };
-  if (typeof mark === "string") mark = { box: 1, dueDate: Date.now() };
-
-  if (status === "known") {
+  if (typeof mark === 'string') mark = { box: 1, dueDate: Date.now() };
+  
+  if (status === 'known') {
     progress.stats.correct++;
-    mark.box = Math.min(6, (mark.box || 1) + 1);
+    mark.box = Math.min(6, (mark.box || 1) + 1); // Повышаем коробку
     mark.dueDate = Date.now() + getSrsInterval(mark.box);
+    
+    // Увеличиваем счетчик за сегодня
+    const today = new Date().toDateString();
+    if (progress.lastStudyDate === today) {
+      progress.todayCount = (progress.todayCount || 0) + 1;
+    } else {
+      progress.lastStudyDate = today;
+      progress.todayCount = 1;
+    }
   } else {
     progress.stats.incorrect++;
-    mark.box = 1;
-    mark.dueDate = Date.now() + 10 * MIN;
+    mark.box = 1; // Сброс в 1-ю коробку
+    mark.dueDate = Date.now() + (10 * MIN); // Показать через 10 минут
   }
-
+  
   progress.marks[c.word] = mark;
   updateStatsUI();
-
+  
   if (cardIdx < filteredCards.length - 1) {
     cardIdx++;
     renderCard();
@@ -604,35 +636,49 @@ function handleMark(status) {
     toast("Вы прошли все карточки в этой теме!");
     saveProgress();
     isAnimating = true;
-    cardEl.classList.remove("flipped");
-    setTimeout(() => {
-      isAnimating = false;
-    }, 350);
+    cardEl.classList.remove('flipped');
+    setTimeout(() => { isAnimating = false; }, 350);
   }
 }
 
+// Обработка кнопок SRS (режим Практики)
 function handleSrs(grade) {
   if (isAnimating) return;
   const c = filteredCards[cardIdx];
   let mark = progress.marks[c.word] || { box: 1, dueDate: Date.now() };
   let newBox = mark.box || 1;
+  let isCorrect = false; // Флаг для подсчета статистики
 
-  if (grade === 1) {
+  if (grade === 1) { // Снова
     newBox = 1;
-    mark.dueDate = Date.now() + 1 * MIN;
+    mark.dueDate = Date.now() + (1 * MIN); // Показать в этой сессии
     progress.stats.incorrect++;
-  } else if (grade === 2) {
+  } else if (grade === 2) { // Трудно
     newBox = Math.max(1, newBox);
-    mark.dueDate = Date.now() + 10 * MIN;
+    mark.dueDate = Date.now() + (10 * MIN); // 10 минут
     progress.stats.correct++;
-  } else if (grade === 3) {
+    isCorrect = true;
+  } else if (grade === 3) { // Хорошо
     newBox = Math.min(6, newBox + 1);
     mark.dueDate = Date.now() + getSrsInterval(newBox);
     progress.stats.correct++;
-  } else if (grade === 4) {
+    isCorrect = true;
+  } else if (grade === 4) { // Легко
     newBox = Math.min(6, newBox + 2);
     mark.dueDate = Date.now() + getSrsInterval(newBox);
     progress.stats.correct++;
+    isCorrect = true;
+  }
+
+  // Если ответ был правильным (Трудно, Хорошо, Легко), увеличиваем счетчик за сегодня
+  if (isCorrect) {
+    const todaySrs = new Date().toDateString();
+    if (progress.lastStudyDate === todaySrs) {
+      progress.todayCount = (progress.todayCount || 0) + 1;
+    } else {
+      progress.lastStudyDate = todaySrs;
+      progress.todayCount = 1;
+    }
   }
 
   mark.box = newBox;
@@ -640,8 +686,9 @@ function handleSrs(grade) {
   updateStatsUI();
   saveProgress();
 
+  // Переход к следующей карточке
   isAnimating = true;
-  cardEl.classList.remove("flipped");
+  cardEl.classList.remove('flipped');
   setTimeout(() => {
     cardIdx++;
     updateCardContent();
@@ -738,6 +785,8 @@ function getWordType(word) {
 function setupConstructor(card) {
   const answerBox = document.getElementById("constructor-answer");
   const chipsBox = document.getElementById("constructor-chips");
+  const hintBox = document.getElementById("grammar-hint");
+
   answerBox.innerHTML = "";
   answerBox.className = "constructor-answer";
   chipsBox.innerHTML = "";
@@ -746,6 +795,17 @@ function setupConstructor(card) {
   tempDiv.innerHTML = card.example;
   const cleanText = tempDiv.textContent.replace(/[.,!?]/g, "");
   const words = cleanText.split(/\s+/).filter((w) => w.length > 0);
+
+  // Динамически генерируем правило для плашки
+  if (hintBox) {
+    const hintWords = words.map((w) => {
+      const type = getWordType(w);
+      if (type === "subj") return '<span class="gh-subj">Subject</span>';
+      if (type === "verb") return '<span class="gh-verb">Verb</span>';
+      return '<span class="gh-obj">Object</span>';
+    });
+    hintBox.innerHTML = hintWords.join(" + ");
+  }
 
   let distractorCount = 0;
   if (currentLevel === "A2") distractorCount = 2;
@@ -818,6 +878,12 @@ document
     if (userSentence === correctText) {
       answerBox.classList.add("correct");
       answerBox.classList.remove("incorrect");
+
+      // Подсветка слов по частям речи при правильном ответе
+      Array.from(answerBox.children).forEach((ansChip) => {
+        const wordType = getWordType(ansChip.textContent);
+        ansChip.classList.add(`pos-${wordType}`);
+      });
     } else {
       answerBox.classList.add("incorrect");
       answerBox.classList.remove("correct");
@@ -858,73 +924,6 @@ function applyCardAnimation() {
     cardEl.classList.add(progress.unlockedAnimations[0]);
   }
 }
-
-document.getElementById("gift-btn").addEventListener("click", () => {
-  const input = prompt("Введите код поддержки, полученный на почту:");
-  if (!input) return;
-  const code = input.trim().toUpperCase();
-
-  if (GIFT_CODES[code]) {
-    const animName = GIFT_CODES[code];
-    if (!progress.unlockedAnimations.includes(animName)) {
-      progress.unlockedAnimations.push(animName);
-      saveProgress();
-      applyCardAnimation();
-      toast("Ура! Новая анимация разблокирована.");
-    } else {
-      toast("Эта анимация уже активирована.");
-    }
-  } else {
-    toast("Неверный код. Проверьте правильность ввода.");
-  }
-});
-
-document.getElementById("save-btn").addEventListener("click", () => {
-  const dataStr = JSON.stringify(progress, null, 2);
-  const blob = new Blob([dataStr], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `linguaflip_backup_${CURRENT_LANG.code}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  toast("Прогресс сохранен в файл");
-});
-
-document.getElementById("load-btn").addEventListener("click", () => {
-  document.getElementById("file-input").click();
-});
-
-document.getElementById("file-input").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    try {
-      const data = JSON.parse(event.target.result);
-      if (
-        confirm(
-          "Восстановить прогресс из файла? Текущие данные будут заменены.",
-        )
-      ) {
-        progress = data;
-        if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
-        if (!progress.marks) progress.marks = {};
-        saveProgress();
-        loadProgress();
-        renderTopicChips();
-        renderCard();
-        toast("Прогресс восстановлен");
-      }
-    } catch (err) {
-      toast("Ошибка: неверный файл");
-    }
-  };
-  reader.readAsText(file);
-  e.target.value = "";
-});
 
 const tabs = document.querySelectorAll(".nav-tab");
 const views = document.querySelectorAll(".view");
@@ -1131,45 +1130,207 @@ renderTopicChips();
 updateCardContent();
 renderVerbChips("verbs");
 renderTable();
-updateTopicProgressBar();
 
-const themeToggle = document.getElementById("theme-toggle");
+/* ===== THEME TOGGLE (Safety Check) ===== */
+const themeToggle = document.getElementById('theme-toggle');
 if (themeToggle) {
-  themeToggle.addEventListener("click", () => {
-    const isDark = document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", isDark ? "dark" : "light");
+  themeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
   });
 }
 
-document.getElementById("donate-btn").addEventListener("click", () => {
-  const donateUrl = "https://pay.cloudtips.ru/p/5e4d197a";
-  const unlockedCount = progress.unlockedAnimations
-    ? progress.unlockedAnimations.length
-    : 0;
-  const hasAllAnimations = unlockedCount >= AVAILABLE_ANIMATIONS.length;
+/* ===== DONATE BUTTON (Safety Check) ===== */
+const donateModal = document.getElementById('donate-modal');
+const donateSubtext = document.getElementById('donate-subtext');
+const donateBtn = document.getElementById('donate-btn');
+const donateLinkBtn = document.getElementById('donate-link-btn');
+const donateModalClose = document.getElementById('donate-modal-close');
 
-  let message = "Поддержите разработчика рублём!\n\n";
+if (donateBtn && donateModal) {
+  donateBtn.addEventListener('click', () => {
+    const unlockedCount = progress.unlockedAnimations ? progress.unlockedAnimations.length : 0;
+    const hasAllAnimations = unlockedCount >= AVAILABLE_ANIMATIONS.length;
+    
+    if (!hasAllAnimations && donateSubtext) {
+      donateSubtext.innerHTML = "P.S. Сделай перевод по ссылке.<br>В комментариях укажи почту и слово 'LinguaFlip'.<br>В ответ пришлю код на эксклюзивную 3D-анимацию!<br><small>(Нет почты — нет анимации)</small>";
+    } else if (donateSubtext) {
+      donateSubtext.innerHTML = "P.S. Ты уже открыл все доступные анимации! ❤️<br>Любой перевод будет просто приятным бонусом.";
+    }
+    
+    donateModal.classList.add('show');
+  });
+}
 
-  if (!hasAllAnimations) {
-    message +=
-      "Сделайте перевод по ссылке (она откроется в браузере).\n" +
-      "В комментариях к переводу укажите почту и слово 'LinguaFlip'.\n\n" +
-      "В ответ я пришлю вам на почту код, который разблокирует эксклюзивную 3D-анимацию переворота карточки в знак благодарности! \n PS. Нет почты, нет анимации";
-  } else {
-    message +=
-      "Вы уже открыли все доступные анимации! ❤️\n" +
-      "Любой перевод будет просто приятным бонусом и поддержкой проекта.";
-  }
+if (donateLinkBtn) {
+  donateLinkBtn.addEventListener('click', () => {
+    const donateUrl = "https://pay.cloudtips.ru/p/5e4d197a";
+    window.open(donateUrl, '_blank');
+    if (donateModal) donateModal.classList.remove('show');
+  });
+}
 
-  if (confirm(message)) {
-    window.open(donateUrl, "_blank");
-  }
-});
+if (donateModalClose) {
+  donateModalClose.addEventListener('click', () => {
+    if (donateModal) donateModal.classList.remove('show');
+  });
+}
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./sw.js")
-      .catch((err) => console.log("SW registration failed:", err));
+/* ===== STATS MODAL (Safety Check) ===== */
+const statsModal = document.getElementById('stats-modal');
+const menuBtn = document.getElementById('menu-btn');
+const statsModalClose = document.getElementById('stats-modal-close');
+
+if (menuBtn && statsModal) {
+  menuBtn.addEventListener('click', () => {
+    updateStatsModal();
+    statsModal.classList.add('show');
+  });
+}
+
+if (statsModalClose && statsModal) {
+  statsModalClose.addEventListener('click', () => {
+    statsModal.classList.remove('show');
+  });
+}
+
+// Настройки внутри модалки статистики
+const themeToggleModal = document.getElementById('theme-toggle-modal');
+if (themeToggleModal) {
+  themeToggleModal.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    toast(isDark ? "Тёмная тема" : "Светлая тема");
+  });
+}
+
+const giftBtnModal = document.getElementById('gift-btn-modal');
+const giftModal = document.getElementById('gift-modal');
+const giftModalClose = document.getElementById('gift-modal-close');
+const giftApplyBtn = document.getElementById('gift-apply-btn');
+const giftCodeInput = document.getElementById('gift-code-input');
+
+if (giftBtnModal && statsModal && giftModal) {
+  giftBtnModal.addEventListener('click', () => {
+    statsModal.classList.remove('show');
+    setTimeout(() => {
+      giftCodeInput.value = '';
+      giftModal.classList.add('show');
+      giftCodeInput.focus();
+    }, 300);
+  });
+}
+
+if (giftModalClose) {
+  giftModalClose.addEventListener('click', () => giftModal.classList.remove('show'));
+}
+
+if (giftApplyBtn) {
+  giftApplyBtn.addEventListener('click', () => {
+    const code = giftCodeInput.value.trim().toUpperCase();
+    if (!code) { toast("Введите код"); return; }
+    
+    if (GIFT_CODES[code]) {
+      const animName = GIFT_CODES[code];
+      if (!progress.unlockedAnimations.includes(animName)) {
+        progress.unlockedAnimations.push(animName);
+        saveProgress();
+        applyCardAnimation();
+        toast('Ура! Новая анимация разблокирована.');
+      } else {
+        toast('Эта анимация уже активирована.');
+      }
+      giftModal.classList.remove('show');
+    } else {
+      toast('Неверный код.');
+      giftCodeInput.classList.add('incorrect');
+      setTimeout(() => giftCodeInput.classList.remove('incorrect'), 1000);
+    }
+  });
+}
+
+const saveBtnModal = document.getElementById('save-btn-modal');
+if (saveBtnModal) {
+  saveBtnModal.addEventListener('click', () => {
+    const dataStr = JSON.stringify(progress, null, 2);
+    const blob = new Blob([dataStr], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `linguaflip_backup_${CURRENT_LANG.code}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("Прогресс сохранен в файл");
+  });
+}
+
+const loadBtnModal = document.getElementById('load-btn-modal');
+const fileInput = document.getElementById('file-input');
+
+if (loadBtnModal && statsModal && fileInput) {
+  loadBtnModal.addEventListener('click', () => {
+    statsModal.classList.remove('show');
+    setTimeout(() => fileInput.click(), 300);
+  });
+}
+
+// Кастомное подтверждение для восстановления
+const confirmModal = document.getElementById('confirm-modal');
+const confirmOkBtn = document.getElementById('confirm-ok-btn');
+const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+let fileToLoad = null;
+
+if (fileInput) {
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    fileToLoad = file;
+    
+    // Показываем кастомное окно подтверждения
+    if (confirmModal) {
+      confirmModal.classList.add('show');
+    }
+    e.target.value = '';
+  });
+}
+
+if (confirmOkBtn && confirmModal) {
+  confirmOkBtn.addEventListener('click', () => {
+    confirmModal.classList.remove('show');
+    if (!fileToLoad) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        progress = data;
+        if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
+        if (!progress.marks) progress.marks = {};
+        saveProgress();
+        loadProgress();
+        renderTopicChips();
+        renderCard();
+        toast("Прогресс восстановлен");
+      } catch(err) {
+        toast("Ошибка: неверный файл");
+      }
+    };
+    reader.readAsText(fileToLoad);
+    fileToLoad = null;
+  });
+}
+
+if (confirmCancelBtn && confirmModal) {
+  confirmCancelBtn.addEventListener('click', () => {
+    confirmModal.classList.remove('show');
+    fileToLoad = null;
+  });
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
   });
 }
