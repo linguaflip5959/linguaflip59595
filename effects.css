@@ -1,3 +1,160 @@
+/* ===== ИСПРАВЛЕННЫЕ ПРЕМИУМ АНИМАЦИИ ===== */
+
+/* 0. Базовый переворот (по умолчанию) */
+.card.anim-default { transition: transform .7s cubic-bezier(.4,.2,.2,1); }
+.card.anim-default.flipped { transform: rotateY(180deg); }
+
+/* 1. Кувырок (3D Tumble) */
+.card.anim-3d-tumble { transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+.card.anim-3d-tumble.flipped { transform: rotateX(360deg) rotateY(180deg); }
+
+/* 2. Страница книги (Page Flip) - Исправлено улетание */
+.card.anim-page-flip { transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1); transform-origin: center center; }
+.card.anim-page-flip.flipped { transform: rotateY(180deg) rotateZ(-5deg); }
+
+/* 3. Зум-Переворот (Zoom Flip) - Исправленный пульсирующий зум */
+.card.anim-zoom-flip.flipped {
+  animation: zoomFlipForward 0.6s ease-in-out forwards;
+}
+.card.anim-zoom-flip:not(.flipped) {
+  animation: zoomFlipReverse 0.6s ease-in-out forwards;
+}
+
+@keyframes zoomFlipForward {
+  0% { transform: scale(1) rotateY(0deg); }
+  50% { transform: scale(0.7) rotateY(90deg); } /* В середине сжимаем и поворачиваем ребром */
+  100% { transform: scale(1) rotateY(180deg); } /* Возвращаем размер и достаем оборот */
+}
+
+@keyframes zoomFlipReverse {
+  0% { transform: scale(1) rotateY(180deg); }
+  50% { transform: scale(0.7) rotateY(90deg); }
+  100% { transform: scale(1) rotateY(0deg); }
+}
+
+/* 4. Сальто-Вверх (Vertical Flip) - Исправлен перевернутый текст */
+.card.anim-vertical-flip { transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+.card.anim-vertical-flip .face.back { transform: rotateX(180deg); /* Меняем Y на X, чтобы текст читался */ }
+.card.anim-vertical-flip.flipped { transform: rotateX(180deg); }
+
+/* 5. Штопор / Твист (Corkscrew Flip) */
+.card.anim-twist-flip { transition: none; }
+.card.anim-twist-flip.flipped {
+  animation: corkscrewForward 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.card.anim-twist-flip:not(.flipped) {
+  animation: corkscrewReverse 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes corkscrewForward {
+  0% { transform: rotateY(0deg) rotateX(0deg); }
+  40% { transform: rotateY(90deg) rotateX(45deg); } /* Закручиваемся и тормозим */
+  55% { transform: rotateY(110deg) rotateX(45deg); } /* Задержка, нижняя часть "догоняет" */
+  100% { transform: rotateY(180deg) rotateX(0deg); } /* Раскручиваемся и встаем ровно */
+}
+
+@keyframes corkscrewReverse {
+  0% { transform: rotateY(180deg) rotateX(0deg); }
+  40% { transform: rotateY(90deg) rotateX(-45deg); }
+  55% { transform: rotateY(70deg) rotateX(-45deg); }
+  100% { transform: rotateY(0deg) rotateX(0deg); }
+}
+
+/* 6. Кибер-Глитч (Cyber Reveal) */
+.card.anim-cyber-reveal {
+  transform-style: flat; 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card.anim-cyber-reveal.flipped {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 24px -8px var(--shadow-color-1);
+}
+
+.card.anim-cyber-reveal .face {
+  -webkit-backface-visibility: visible;
+  backface-visibility: visible;
+  overflow: hidden; /* Чтобы блик не вылезал за края */
+}
+
+/* Оборотная сторона становится полупрозрачным оверлеем */
+.card.anim-cyber-reveal .face.back {
+  transform: none; 
+  opacity: 0;
+  z-index: 2; 
+  /* Полупрозрачный фон под светлую тему */
+  background: rgba(251, 246, 236, 0.88); 
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.3s ease;
+}
+
+/* Тёмная тема: делаем оверлей тёмным */
+html.dark .card.anim-cyber-reveal .face.back {
+  background: rgba(26, 20, 15, 0.85);
+}
+
+.card.anim-cyber-reveal.flipped .face.back {
+  opacity: 1;
+}
+
+/* Эффект размытия лицевой стороны при тапе */
+.card.anim-cyber-reveal.flipped .face.front .word,
+.card.anim-cyber-reveal.flipped .face.front .transcription,
+.card.anim-cyber-reveal.flipped .face.front .card-tag,
+.card.anim-cyber-reveal.flipped .face.front .hint {
+  filter: blur(3px);
+  transition: filter 0.3s ease;
+}
+
+/* === Логика блика (Shine Effect) === */
+
+/* Блик на лицевой стороне (периодический) */
+.card.anim-cyber-reveal .face.front::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.12) 50%, transparent 100%);
+  transform: skewX(-25deg) translateX(-200%);
+  pointer-events: none;
+  z-index: 5;
+  animation: cyber-idle-shine 10s ease-in-out infinite;
+  transition: opacity 0.2s ease; /* Плавно скрываем, когда открываем перевод */
+}
+
+/* Скрываем фоновый блик, когда карточка открыта, чтобы не было двойного эффекта */
+.card.anim-cyber-reveal.flipped .face.front::after {
+  opacity: 0;
+}
+
+@keyframes cyber-idle-shine {
+  0%, 60% { transform: skewX(-25deg) translateX(-200%); }
+  80% { transform: skewX(-25deg) translateX(300%); }
+  100% { transform: skewX(-25deg) translateX(300%); }
+}
+
+/* Блик на обратной стороне (при тапе) */
+.card.anim-cyber-reveal .face.back::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+  transform: skewX(-25deg) translateX(-200%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.card.anim-cyber-reveal.flipped .face.back::after {
+  animation: cyber-tap-shine 0.7s ease-out forwards;
+}
+
+@keyframes cyber-tap-shine {
+  0% { transform: skewX(-25deg) translateX(-200%); }
+  100% { transform: skewX(-25deg) translateX(300%); }
+}
+
 /* ===== Эффект пузырьков (Bubbly Button) ===== */
 .bubbly-button {
   font-family: 'DM Sans', sans-serif;
@@ -90,7 +247,6 @@
   100% { background-position: 0% 90%, 20% 90%, 45% 70%, 60% 110%, 75% 80%, 95% 70%, 110% 10%; background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
 }
 
-/* Цвета для разных кнопок */
 .know-btn { --btn-bg: var(--ok); --btn-bg-dark: #2f5230; background-color: var(--ok); color: #fff; }
 .check-btn { --btn-bg: var(--accent); --btn-bg-dark: #9a3309; background-color: var(--accent); color: #fff; }
 .donate-btn { --btn-bg: var(--err); --btn-bg-dark: #6b1c1c; background-color: var(--err); color: #fff; font-size: 18px; }

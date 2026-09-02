@@ -11,9 +11,22 @@ let isPracticeMode = false;
 let isConstructorMode = false;
 let currentLevel = "A1";
 
-const AVAILABLE_ANIMATIONS = ["anim-3d-tumble"];
+const AVAILABLE_ANIMATIONS = [
+  "anim-3d-tumble",
+  "anim-page-flip",
+  "anim-zoom-flip",
+  "anim-vertical-flip",
+  "anim-twist-flip",
+  "anim-cyber-reveal"
+];
+
 const GIFT_CODES = {
   "LF-TUMBLE-2024": "anim-3d-tumble",
+  "LF-BOOK-2024": "anim-page-flip",
+  "LF-ZOOM-2024": "anim-zoom-flip", 
+  "LF-VERT-2024": "anim-vertical-flip",
+  "LF-TWIST-2024": "anim-twist-flip",
+  "LF-CYBER-2024": "anim-cyber-reveal" 
 };
 
 let progress = {
@@ -919,10 +932,36 @@ document.getElementById("level-btn").addEventListener("click", () => {
 });
 
 function applyCardAnimation() {
+  // Удаляем все классы анимаций
   AVAILABLE_ANIMATIONS.forEach((anim) => cardEl.classList.remove(anim));
-  if (progress.unlockedAnimations && progress.unlockedAnimations.length > 0) {
-    cardEl.classList.add(progress.unlockedAnimations[0]);
+  cardEl.classList.remove('anim-default');
+  
+  // Применяем активную анимацию (или дефолтную)
+  const activeAnim = progress.activeAnimation || 'none';
+  if (activeAnim !== 'none' && AVAILABLE_ANIMATIONS.includes(activeAnim)) {
+    cardEl.classList.add(activeAnim);
+  } else {
+    cardEl.classList.add('anim-default');
   }
+  
+  // Обновляем выпадающий список в настройках
+  updateAnimationSelect();
+}
+
+// Новая функция для заполнения списка анимаций
+function updateAnimationSelect() {
+  const select = document.getElementById('animation-select');
+  if (!select) return;
+  
+  let html = '<option value="none">По умолчанию</option>';
+  progress.unlockedAnimations.forEach(anim => {
+    let label = anim.replace('anim-', '').replace(/-/g, ' ');
+    html += `<option value="${anim}">${label}</option>`;
+  });
+  select.innerHTML = html;
+  
+  // Устанавливаем текущую активную
+  select.value = progress.activeAnimation || 'none';
 }
 
 const tabs = document.querySelectorAll(".nav-tab");
@@ -1232,14 +1271,20 @@ if (giftApplyBtn) {
     
     if (GIFT_CODES[code]) {
       const animName = GIFT_CODES[code];
+      
+      // Добавляем в разблокированные, если еще нет
       if (!progress.unlockedAnimations.includes(animName)) {
         progress.unlockedAnimations.push(animName);
-        saveProgress();
-        applyCardAnimation();
-        toast('Ура! Новая анимация разблокирована.');
+        toast('Ура! Анимация разблокирована.');
       } else {
-        toast('Эта анимация уже активирована.');
+        toast('Эта анимация уже была активирована.');
       }
+      
+      // Сразу делаем её активной и сохраняем
+      progress.activeAnimation = animName;
+      saveProgress();
+      applyCardAnimation();
+      
       giftModal.classList.remove('show');
     } else {
       toast('Неверный код.');
@@ -1273,6 +1318,16 @@ if (loadBtnModal && statsModal && fileInput) {
   loadBtnModal.addEventListener('click', () => {
     statsModal.classList.remove('show');
     setTimeout(() => fileInput.click(), 300);
+  });
+}
+
+const animSelect = document.getElementById('animation-select');
+if (animSelect) {
+  animSelect.addEventListener('change', (e) => {
+    progress.activeAnimation = e.target.value;
+    saveProgress();
+    applyCardAnimation();
+    toast("Анимация применена");
   });
 }
 
