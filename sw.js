@@ -1,4 +1,4 @@
-const CACHE_NAME = 'linguaflip-cache-v1.7';
+const CACHE_NAME = 'linguaflip-cache-v1.8';
 const ASSETS = [
   './',
   './index.html',
@@ -10,7 +10,8 @@ const ASSETS = [
   './icon.svg',
   './icon-192.png',
   './icon-512.png',
-  './data_en.js'
+  './data_en.js',
+  './data_es.js'
 ];
 
 self.addEventListener('install', (event) => {

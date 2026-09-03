@@ -402,6 +402,33 @@ html.theme-ocean .logo-orbit::before {
   box-shadow: 0 0 8px 2px rgba(180,240,255,.5);
 }
 
+/* Прозрачная нижняя панель, чтобы было видно морское дно */
+html.theme-ocean .bottom-nav {
+  background: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-top: none;
+}
+
+/* Контейнер с кнопками делаем полупрозрачным */
+html.theme-ocean .bottom-nav-inner {
+  background: rgba(12, 42, 66, 0.7);
+  border: 1px solid var(--line);
+}
+
+/* Активная кнопка (Карточки) становится бирюзовой */
+html.theme-ocean .nav-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  color: #04283c; /* Тёмный текст для контраста */
+  border-color: transparent;
+  box-shadow: 0 12px 26px -9px rgba(14, 154, 167, 0.85), 0 0 20px rgba(53, 208, 192, 0.3);
+}
+
+/* Для светлой версии Океана тоже делаем кнопку акцентной */
+html.theme-ocean:not(.dark) .nav-tab.active {
+  color: #ffffff;
+}
+
 /* ===== ТЕМА: ЛЕС (С анимированным фоном) ===== */
 html.theme-forest {
   --bg: #f1f3e6;
@@ -514,6 +541,41 @@ html.theme-forest .logo-orbit::before {
   box-shadow: 0 0 8px 2px rgba(127,174,94,.7);
 }
 
+/* Прозрачная нижняя панель */
+html.theme-forest .bottom-nav {
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: none;
+}
+
+/* Контейнер с кнопками в светлом Лесу */
+html.theme-forest:not(.dark) .bottom-nav-inner {
+  background: rgba(241, 243, 230, 0.75); /* Светлая полупрозрачная */
+  border: 1px solid var(--line);
+}
+
+/* Активная кнопка в светлом Лесу (зеленая, белый текст) */
+html.theme-forest:not(.dark) .nav-tab.active {
+  background: linear-gradient(135deg, #2f8355, #1d5c40);
+  color: #fdfcf5;
+  border-color: transparent;
+  box-shadow: 0 4px 12px -4px rgba(29, 92, 64, 0.5);
+}
+
+/* Контейнер с кнопками в темном Лесу */
+html.dark.theme-forest .bottom-nav-inner {
+  background: rgba(15, 42, 20, 0.8); /* Темная полупрозрачная */
+}
+
+/* Активная кнопка в темном Лесу (яркая, темный текст) */
+html.dark.theme-forest .nav-tab.active {
+  background: linear-gradient(135deg, #4ade80, #15803d);
+  color: #0a1f0e; /* Темный текст для контраста */
+  border-color: transparent;
+  box-shadow: 0 4px 12px -4px rgba(74, 222, 128, 0.4);
+}
+
 /* ===== ТЕМА: КОСМОС (С анимированным фоном) ===== */
 html.theme-cosmos {
   --bg: #070b1a;
@@ -532,7 +594,7 @@ html.theme-cosmos {
   --body-gradient-1: rgba(124, 92, 224, 0.28);
   --body-gradient-2: rgba(73, 214, 194, 0.10);
   --front-card-gradient: #161d44;
-   --back-card-bg-1: #dcfce7; /* Светлый весенний зеленый */
+  --back-card-bg-1: #dcfce7; /* Светлый весенний зеленый */
   --back-card-bg-2: #bbf7d0; /* Немного темнее к краям */
   --back-card-text: #14532d; /* Темно-зеленый текст для контраста */
   --back-card-tag: #15803d;
@@ -650,3 +712,58 @@ html.theme-cosmos .logo-orbit {
   display: block;
 }
 @keyframes orbit { to { transform: rotate(360deg); } }
+
+/* ===== ПОЛИРОВКА ТЕМЫ КОСМОС ===== */
+
+/* Прозрачная нижняя панель, чтобы не перекрывать планеты и звёзды */
+html.theme-cosmos .bottom-nav {
+  background: transparent !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: none;
+}
+
+/* Контейнер с кнопками становится полупрозрачным фиолетовым */
+html.theme-cosmos .bottom-nav-inner {
+  background: rgba(30, 20, 56, 0.75);
+  border: 1px solid var(--line);
+}
+
+/* Активная кнопка (Карточки) становится цвета фиолетового чипа */
+html.theme-cosmos .nav-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-light)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px -4px rgba(143, 123, 245, 0.5);
+}
+
+/* Кнопка "Знаю" — цвет зелёной планеты */
+html.theme-cosmos .know-btn {
+  background: linear-gradient(135deg, #57e0c8, #157a6d) !important;
+  box-shadow: 0 4px 12px -4px rgba(73, 214, 194, 0.5);
+}
+
+/* Жёстко исправляем цвета карточки, чтобы не было багов с Лесом */
+html.theme-cosmos .face.front,
+html.dark.theme-cosmos .face.front {
+  background: radial-gradient(120% 60% at 50% 0%, #221a3d 0%, #1e1438 60%) !important;
+}
+
+html.theme-cosmos .face.back,
+html.dark.theme-cosmos .face.back {
+  background: radial-gradient(120% 60% at 50% 0%, #1a1233 0%, #0f0a1e 70%) !important;
+}
+/* Жёстко фиксируем цвета ТЕКСТА для Космоса */
+html.theme-cosmos .back .translation,
+html.theme-cosmos .example-en {
+  color: #f1eeff !important; /* Светлый фиолетово-белый текст */
+}
+html.theme-cosmos .back .card-tag {
+  color: #a78bfa !important; /* Фиолетовый тег */
+}
+html.theme-cosmos .example-en b {
+  color: #f2c14e !important; /* Золотой для выделенного слова */
+}
+html.theme-cosmos .example-ru {
+  color: #a78bfa !important; /* Темный фиолетовый для перевода примера */
+}

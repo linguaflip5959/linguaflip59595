@@ -789,5 +789,19 @@ const LANG_EN = {
     drive: { base:"drive", past:"drove",   participle:"driven",  ing:"driving",  regular:false, thirdSingular:"drives" },
     sing:  { base:"sing",  past:"sang",    participle:"sung",    ing:"singing",  regular:false, thirdSingular:"sings" },
     swim:  { base:"swim",  past:"swam",    participle:"swum",    ing:"swimming", regular:false, thirdSingular:"swims" }
-  }
+  },
+  pronouns: [
+    { key: "I", label: "I" },
+    { key: "you", label: "you" },
+    { key: "he/she", label: "he / she" },
+    { key: "we", label: "we" },
+    { key: "they", label: "they" }
+  ],
+  tenses: [
+    { key: "ps", label: "Present Simple" },
+    { key: "pas", label: "Past Simple" },
+    { key: "fs", label: "Future Simple" },
+    { key: "pc", label: "Present Continuous" },
+    { key: "pp", label: "Present Perfect" }
+  ]
 };

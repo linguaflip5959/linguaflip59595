@@ -1,7 +1,15 @@
 /* ===== ИНИЦИАЛИЗАЦИЯ ЯЗЫКА ===== */
-const CURRENT_LANG = LANG_EN;
-const allCards = CURRENT_LANG.cards;
-const verbs = CURRENT_LANG.verbs;
+const LANGUAGES = {
+  en: LANG_EN,
+  es: LANG_ES
+  // ja: LANG_JA, ko: LANG_KO, zh: LANG_ZH
+};
+
+let CURRENT_LANG = LANGUAGES.en; // По умолчанию английский
+let allCards = CURRENT_LANG.cards;
+let verbs = CURRENT_LANG.verbs;
+let pronouns = CURRENT_LANG.pronouns;
+let tenses = CURRENT_LANG.tenses;
 
 let filteredCards = [];
 let currentTopic = "all";
@@ -10,6 +18,11 @@ let isAnimating = false;
 let isPracticeMode = false;
 let isConstructorMode = false;
 let currentLevel = "A1";
+
+// Тактильный отклик (если поддерживается)
+function vibrate(ms) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
 
 const AVAILABLE_ANIMATIONS = [
   "anim-3d-tumble",
@@ -26,19 +39,51 @@ const AVAILABLE_THEMES = [
   "theme-cosmos"
 ];
 
-const GIFT_CODES = {
-  "LF-TUMBLE-2024": "anim-3d-tumble",
-  "LF-BOOK-2024": "anim-page-flip",
-  "LF-ZOOM-2024": "anim-zoom-flip", 
-  "LF-VERT-2024": "anim-vertical-flip",
-  "LF-TWIST-2024": "anim-twist-flip",
-  "LF-CYBER-2024": "anim-cyber-reveal",
+const _0x4f2a = [
+  //Card Flip
+  ["NDIwMi1FTEJNVVQtRkw=", "ZWxibXV0LWQzLW1pbmE="],
+  ["NDIwMi1LT09CLUZM", "cGlsZi1lZ2FwLW1pbmE="],
+  ["NDIwMi1NT09aLUZM", "cGlsZi1tb296LW1pbmE="],
+  ["NDIwMi1UUkVWLUZM", "cGlsZi1sYWNpdHJldi1taW5h"],
+  ["NDIwMi1UU0lXVC1GTA==", "cGlsZi10c2l3dC1taW5h"],
+  ["NDIwMi1SRUJZQy1GTA==", "bGFldmVyLXJlYnljLW1pbmE="],
+  // Theme
+  ["NDIwMi1OQUVDTy1GTA==", "bmFlY28tZW1laHQ="],
+  ["NDIwMi1UU0VST0YtRkw=", "dHNlcm9mLWVtZWh0"],
+  ["NDIwMi1TT01TT0MtRkw=", "c29tc29jLWVtZWh0"],
+];
 
-  // Темы
-  "LF-OCEAN-2024": "theme-ocean",
-  "LF-FOREST-2024": "theme-forest",
-  "LF-COSMOS-2024": "theme-cosmos"
-};
+// Функция-дешифратор
+function _0x5b3c(encoded) {
+  if (!encoded) return null;
+  try {
+    return atob(encoded).split('').reverse().join('');
+  } catch (e) {
+    return null;
+  }
+}
+
+// Собираем словарь на лету, чтобы не светить ключи в памяти подолгу
+function _0x6c1d() {
+  const dict = {};
+  _0x4f2a.forEach(item => {
+    const code = _0x5b3c(item[0]);
+    const reward = _0x5b3c(item[1]);
+    if (code && reward) dict[code] = reward;
+  });
+  return dict;
+}
+
+// Заглушка для GIFT_CODES (чтобы старый код работал)
+const GIFT_CODES = new Proxy({}, {
+  get: function(target, prop) {
+    const dict = _0x6c1d();
+    return dict[prop];
+  },
+  ownKeys: function() {
+    return Object.keys(_0x6c1d());
+  }
+});
 
 let progress = {
   topic: "all",
@@ -64,22 +109,6 @@ const topics = [
   { key: "body", label: "Body" },
   { key: "clothes", label: "Clothes" },
   { key: "time", label: "Time" },
-];
-
-const pronouns = [
-  { key: "I", label: "I" },
-  { key: "you", label: "you" },
-  { key: "he/she", label: "he / she" },
-  { key: "we", label: "we" },
-  { key: "they", label: "they" },
-];
-
-const tenses = [
-  { key: "ps", label: "Present Simple" },
-  { key: "pas", label: "Past Simple" },
-  { key: "fs", label: "Future Simple" },
-  { key: "pc", label: "Present Continuous" },
-  { key: "pp", label: "Present Perfect" },
 ];
 
 function buildForm(verb, pronKey, tenseKey) {
@@ -112,6 +141,7 @@ if (window.speechSynthesis) {
   loadVoices();
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
+
 function speak(text) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
@@ -120,12 +150,13 @@ function speak(text) {
   const cleanText = tempDiv.textContent || tempDiv.innerText || "";
 
   const u = new SpeechSynthesisUtterance(cleanText);
-  u.lang = "en-US";
+  // Подбираем язык в зависимости от изучаемого
+  const langMap = { en: "en-US", es: "es-ES", ja: "ja-JP", ko: "ko-KR", zh: "zh-CN" };
+  u.lang = langMap[CURRENT_LANG.code] || "en-US";
   u.rate = 0.92;
   u.pitch = 1;
-  const enVoice =
-    voices.find((v) => /en[-_]US/i.test(v.lang)) ||
-    voices.find((v) => /^en/i.test(v.lang));
+  
+  const enVoice = voices.find(v => v.lang === u.lang) || voices.find(v => v.lang.startsWith(CURRENT_LANG.code));
   if (enVoice) u.voice = enVoice;
   window.speechSynthesis.speak(u);
 }
@@ -173,6 +204,28 @@ function getSrsInterval(box) {
 }
 
 function loadProgress() {
+    // Глобальный прогресс (анимации и темы, не зависят от языка)
+  const globalData = JSON.parse(localStorage.getItem('linguaflip_global') || '{}');
+  if (!globalData.unlockedAnimations) globalData.unlockedAnimations = [];
+  if (!globalData.unlockedThemes) globalData.unlockedThemes = [];
+  if (!globalData.activeAnimation) globalData.activeAnimation = 'none';
+  if (!globalData.activeTheme) globalData.activeTheme = 'none';
+  window.GLOBAL_PROGRESS = globalData;
+
+  // Восстанавливаем выбранный язык
+  const savedLang = localStorage.getItem('linguaflip_lang') || 'en';
+  if (LANGUAGES[savedLang]) {
+    CURRENT_LANG = LANGUAGES[savedLang];
+    allCards = CURRENT_LANG.cards;
+    verbs = CURRENT_LANG.verbs;
+    pronouns = CURRENT_LANG.pronouns;
+    tenses = CURRENT_LANG.tenses;
+    currentVerb = Object.keys(verbs)[0] || "work";
+    
+    const langSelect = document.getElementById('lang-select');
+    if (langSelect) langSelect.value = savedLang;
+  }
+
   const saved = localStorage.getItem("progress_" + CURRENT_LANG.code);
   if (saved) {
     try {
@@ -295,6 +348,7 @@ function updateTopicProgressBar() {
 }
 
 function triggerCelebration() {
+  vibrate([20, 40, 60]);
   const overlay = document.getElementById("celebration-overlay");
   const confettiContainer = document.getElementById("confetti-container");
 
@@ -390,16 +444,13 @@ topicChipsContainer.addEventListener("click", (e) => {
 const cardEl = document.getElementById("card");
 
 function showSessionComplete() {
+  vibrate(10);
   document.getElementById("front-tag").textContent = "Готово!";
-  document.getElementById("card-word").textContent = "Сессия завершена";
   document.getElementById("card-trans").textContent = "";
-  document.getElementById("card-translation").textContent =
-    "Все карточки в этой теме повторены. Возвращайтесь позже!";
   document.getElementById("card-example").innerHTML = "";
   document.getElementById("card-example-ru").textContent = "";
   document.getElementById("counter").textContent = "0 / 0";
-  document.getElementById("progress-label").textContent =
-    "Нет просроченных карточек";
+  document.getElementById("progress-label").textContent = "Нет просроченных карточек";
   document.getElementById("progress-bar").style.width = "100%";
   document.getElementById("binary-actions").style.display = "none";
   document.getElementById("srs-actions").style.display = "none";
@@ -408,6 +459,15 @@ function showSessionComplete() {
   document.getElementById("constructor-ui").style.display = "none";
   document.getElementById("constructor-check-btn").style.display = "none";
   document.getElementById("card-hint").style.display = "none";
+
+  // Кастомный текст для пустых сложных слов
+  if (currentTopic === "difficult" && filteredCards.length === 0) {
+    document.getElementById("card-word").textContent = "Сложных слов нет!";
+    document.getElementById("card-translation").textContent = "Вы отметили все слова как изученные. Вы гений! 🧠";
+  } else {
+    document.getElementById("card-word").textContent = "Сессия завершена";
+    document.getElementById("card-translation").textContent = "Все карточки в этой теме повторены. Возвращайтесь позже!";
+  }
 }
 
 function updateCardContent() {
@@ -634,6 +694,7 @@ document.getElementById("practice-input").addEventListener("input", (e) => {
 // Обработка кнопок "Знаю / Не знаю" (режим Чтения)
 function handleMark(status) {
   if (isAnimating) return;
+  vibrate(status === 'known' ? 10 : 20)
   const c = filteredCards[cardIdx];
   let mark = progress.marks[c.word] || { box: 1, dueDate: Date.now() };
   if (typeof mark === 'string') mark = { box: 1, dueDate: Date.now() };
@@ -676,6 +737,7 @@ function handleMark(status) {
 // Обработка кнопок SRS (режим Практики)
 function handleSrs(grade) {
   if (isAnimating) return;
+  vibrate(grade === 1 ? 30 : 10); 
   const c = filteredCards[cardIdx];
   let mark = progress.marks[c.word] || { box: 1, dueDate: Date.now() };
   let newBox = mark.box || 1;
@@ -908,6 +970,7 @@ document
       .toLowerCase();
 
     if (userSentence === correctText) {
+      vibrate(15);
       answerBox.classList.add("correct");
       answerBox.classList.remove("incorrect");
 
@@ -950,51 +1013,55 @@ document.getElementById("level-btn").addEventListener("click", () => {
   saveProgress();
 });
 
+function saveGlobalProgress() {
+  localStorage.setItem('linguaflip_global', JSON.stringify(window.GLOBAL_PROGRESS));
+}
+
 function applyCardAnimation() {
-  // Удаляем все классы анимаций
   AVAILABLE_ANIMATIONS.forEach((anim) => cardEl.classList.remove(anim));
   cardEl.classList.remove('anim-default');
   
-  // Применяем активную анимацию (или дефолтную)
-  const activeAnim = progress.activeAnimation || 'none';
+  const gp = window.GLOBAL_PROGRESS;
+  const activeAnim = gp.activeAnimation || 'none';
   if (activeAnim !== 'none' && AVAILABLE_ANIMATIONS.includes(activeAnim)) {
     cardEl.classList.add(activeAnim);
   } else {
     cardEl.classList.add('anim-default');
   }
   
-  // Обновляем выпадающий список в настройках
   updateAnimationSelect();
 }
 
+function updateAnimationSelect() {
+  const select = document.getElementById('animation-select');
+  if (!select) return;
+  
+  let html = '<option value="none">По умолчанию</option>';
+  const gp = window.GLOBAL_PROGRESS;
+  if (!gp.unlockedAnimations) gp.unlockedAnimations = [];
+  
+  gp.unlockedAnimations.forEach(anim => {
+    let label = anim.replace('anim-', '').replace(/-/g, ' ');
+    html += `<option value="${anim}">${label}</option>`;
+  });
+  select.innerHTML = html;
+  select.value = gp.activeAnimation || 'none';
+}
+
 function applyTheme() {
-  // Сначала удаляем все классы тем с <html>
   AVAILABLE_THEMES.forEach(t => document.documentElement.classList.remove(t));
   
-  const activeTheme = progress.activeTheme || 'none';
+  const gp = window.GLOBAL_PROGRESS;
+  const activeTheme = gp.activeTheme || 'none';
   if (activeTheme !== 'none' && AVAILABLE_THEMES.includes(activeTheme)) {
     document.documentElement.classList.add(activeTheme);
     
-    // Запрашиваем генерацию эффектов, если файл effects.js подключен
     if (window.LinguaEffects) {
-      if (activeTheme === 'theme-cosmos') {
-        window.LinguaEffects.initCosmosStars();
-      } else if (activeTheme === 'theme-forest') {
-        window.LinguaEffects.initForestLeaves();
-      }
+      if (activeTheme === 'theme-cosmos') window.LinguaEffects.initCosmosStars();
+      else if (activeTheme === 'theme-forest') window.LinguaEffects.initForestLeaves();
+      else if (activeTheme === 'theme-ocean') window.LinguaEffects.initOceanBubbles();
     }
   }
-
-    if (window.LinguaEffects) {
-      if (activeTheme === 'theme-cosmos') {
-        window.LinguaEffects.initCosmosStars();
-      } else if (activeTheme === 'theme-forest') {
-        window.LinguaEffects.initForestLeaves();
-      } else if (activeTheme === 'theme-ocean') {
-        window.LinguaEffects.initOceanBubbles();
-      }
-    }
-  
   updateThemeSelect();
 }
 
@@ -1003,17 +1070,16 @@ function updateThemeSelect() {
   if (!select) return;
   
   let html = '<option value="none">По умолчанию (Тёплая)</option>';
+  const gp = window.GLOBAL_PROGRESS;
+  if (!gp.unlockedThemes) gp.unlockedThemes = [];
   
-  if (!progress.unlockedThemes) progress.unlockedThemes = [];
-  
-  progress.unlockedThemes.forEach(theme => {
+  gp.unlockedThemes.forEach(theme => {
     let label = theme.replace('theme-', '');
     label = label.charAt(0).toUpperCase() + label.slice(1);
     html += `<option value="${theme}">${label}</option>`;
   });
   select.innerHTML = html;
-  
-  select.value = progress.activeTheme || 'none';
+  select.value = gp.activeTheme || 'none';
 }
 
 // Новая функция для заполнения списка анимаций
@@ -1049,7 +1115,7 @@ tabs.forEach((tab) => {
 
 const tableTypeSelect = document.getElementById("table-type");
 const verbChipsContainer = document.getElementById("verb-chips");
-let currentVerb = "work";
+let currentVerb = Object.keys(verbs)[0] || "work";
 let currentMode = "view";
 
 function renderVerbChips(type) {
@@ -1253,8 +1319,8 @@ if (themeToggle) {
 const themeSelect = document.getElementById('theme-select');
 if (themeSelect) {
   themeSelect.addEventListener('change', (e) => {
-    progress.activeTheme = e.target.value;
-    saveProgress();
+    window.GLOBAL_PROGRESS.activeTheme = e.target.value;
+    saveGlobalProgress();
     applyTheme();
     toast("Тема применена");
   });
@@ -1352,20 +1418,20 @@ if (giftApplyBtn) {
     
     if (GIFT_CODES[code]) {
       const reward = GIFT_CODES[code];
+      const gp = window.GLOBAL_PROGRESS;
       let alreadyUnlocked = false;
       
-      // Проверяем, что это: анимация или тема
       if (reward.startsWith('anim-')) {
-        if (!progress.unlockedAnimations.includes(reward)) {
-          progress.unlockedAnimations.push(reward);
-          progress.activeAnimation = reward;
+        if (!gp.unlockedAnimations.includes(reward)) {
+          gp.unlockedAnimations.push(reward);
+          gp.activeAnimation = reward;
           applyCardAnimation();
           toast('Ура! Анимация разблокирована.');
         } else alreadyUnlocked = true;
       } else if (reward.startsWith('theme-')) {
-        if (!progress.unlockedThemes.includes(reward)) {
-          progress.unlockedThemes.push(reward);
-          progress.activeTheme = reward;
+        if (!gp.unlockedThemes.includes(reward)) {
+          gp.unlockedThemes.push(reward);
+          gp.activeTheme = reward;
           applyTheme();
           toast('Ура! Тема разблокирована.');
         } else alreadyUnlocked = true;
@@ -1373,7 +1439,7 @@ if (giftApplyBtn) {
       
       if (alreadyUnlocked) toast('Этот код уже был активирован.');
       
-      saveProgress();
+      saveGlobalProgress();
       giftModal.classList.remove('show');
     } else {
       toast('Неверный код.');
@@ -1413,8 +1479,8 @@ if (loadBtnModal && statsModal && fileInput) {
 const animSelect = document.getElementById('animation-select');
 if (animSelect) {
   animSelect.addEventListener('change', (e) => {
-    progress.activeAnimation = e.target.value;
-    saveProgress();
+    window.GLOBAL_PROGRESS.activeAnimation = e.target.value;
+    saveGlobalProgress();
     applyCardAnimation();
     toast("Анимация применена");
   });
@@ -1476,5 +1542,17 @@ if (confirmCancelBtn && confirmModal) {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+  });
+}
+
+const langSelect = document.getElementById('lang-select');
+if (langSelect) {
+  langSelect.addEventListener('change', (e) => {
+    const newLang = e.target.value;
+    localStorage.setItem('linguaflip_lang', newLang);
+    
+    // Показываем сообщение и перезагружаем страницу
+    toast("Меняем язык...");
+    setTimeout(() => location.reload(), 300);
   });
 }
