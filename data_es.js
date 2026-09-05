@@ -6,23 +6,79 @@ const LANG_ES = {
     {topic:"food",word:"pan",transcription:"[pan]",translation:"хлеб",example:"Compro pan fresco.",exampleTranslation:"Я покупаю свежий хлеб."},
     {topic:"home",word:"casa",transcription:"[ˈkasa]",translation:"дом",example:"La casa es grande.",exampleTranslation:"Дом большой."}
   ],
-  verbs: {
-    hablar: { base:"hablo", past:"hablé", participle:"hablado", ing:"hablando", regular:true, thirdSingular:"habla" },
-    comer:  { base:"como", past:"comí", participle:"comido", ing:"comiendo", regular:true, thirdSingular:"come" },
-    vivir:  { base:"vivo", past:"viví", participle:"vivido", ing:"viviendo", regular:true, thirdSingular:"vive" }
-  },
+  hideVosotros: false, // true — скрыть строку Vosotros (латиноамериканский вариант)
+
   pronouns: [
-    { key:"yo",         label:"Yo" },
-    { key:"tu",         label:"Tú" },
-    { key:"el-ella",    label:"Él / Ella" },
-    { key:"nosotros",   label:"Nosotros" },
-    { key:"ellos",      label:"Ellos" }
+    { key: "yo",       label: "Yo" },
+    { key: "tu",       label: "Tú" },
+    { key: "el",       label: "Él/Ella" },
+    { key: "nosotros", label: "Nosotros" },
+    { key: "vosotros", label: "Vosotros" },
+    { key: "ellos",    label: "Ellos" }
   ],
+
   tenses: [
-    { key:"ps",  label:"Presente Simple" },
-    { key:"pas", label:"Pasado Simple" },
-    { key:"fs",  label:"Futuro Simple" },
-    { key:"pc",  label:"Presente Continuo" },
-    { key:"pp",  label:"Pretérito Perfecto" }
-  ]
+    { key: "presente",   label: "Presente" },
+    { key: "indefinido", label: "Pretérito Indefinido" },   // ← переименовали
+    { key: "futuro",     label: "Futuro Simple" },
+    { key: "continuo",   label: "Presente Continuo" },
+    { key: "perfecto",   label: "Pretérito Perfecto" },
+    { key: "ir_a",       label: "Ir a + infinitivo" }
+  ],
+
+  verbs: {
+    // === ПРАВИЛЬНЫЕ: достаточно флага (для чипа «прав./неправ.») ===
+    // Порядок важен: первый глагол открывается по умолчанию
+    hablar:   { regular: true },
+    comer:    { regular: true },
+    vivir:    { regular: true },
+    trabajar: { regular: true },
+    aprender: { regular: true },
+    escribir: { regular: true },
+
+    // === НЕПРАВИЛЬНЫЕ: храняем только отклонения от правил ===
+    // Присутствует массив времени → берём его; нет → генерим окончаниями
+    ser: {
+      presente:  ["soy","eres","es","somos","sois","son"],
+      indefinido:["fui","fuiste","fue","fuimos","fuisteis","fueron"],
+      participle: "sido", gerund: "siendo"
+      // futuro регулярный → seré, serás... — сгенерится
+    },
+    estar: {
+      presente:  ["estoy","estás","está","estamos","estáis","están"],
+      indefinido:["estuve","estuviste","estuvo","estuvimos","estuvisteis","estuvieron"],
+      participle: "estado", gerund: "estando"
+    },
+    haber: {
+      presente:  ["he","has","ha","hemos","habéis","han"],
+      indefinido:["hube","hubiste","hubo","hubimos","hubisteis","hubieron"],
+      participle: "habido"
+    },
+    ir: {
+      presente:  ["voy","vas","va","vamos","vais","van"],
+      indefinido:["fui","fuiste","fue","fuimos","fuisteis","fueron"],
+      participle: "ido", gerund: "yendo"
+    },
+    tener: {
+      presente:  ["tengo","tienes","tiene","tenemos","tenéis","tienen"],
+      indefinido:["tuve","tuviste","tuvo","tuvimos","tuvisteis","tuvieron"],
+      futuro:    ["tendré","tendrás","tendrá","tendremos","tendréis","tendrán"],
+      participle: "tenido", gerund: "teniendo"
+    },
+    hacer: {
+      presente:  ["hago","haces","hace","hacemos","hacéis","hacen"],
+      indefinido:["hice","hiciste","hizo","hicimos","hicisteis","hicieron"],
+      futuro:    ["haré","harás","hará","haremos","haréis","harán"],
+      participle: "hecho", gerund: "haciendo"
+    },
+    venir: {
+      presente:  ["vengo","vienes","viene","venimos","venís","vienen"],
+      indefinido:["vine","viniste","vino","vinimos","vinisteis","vinieron"],
+      futuro:    ["vendré","vendrás","vendrá","vendremos","vendréis","vendrán"],
+      participle: "venido", gerund: "viniendo"
+    }
+    // новые неправильные добавляются по тому же шаблону;
+    // для дифтонгов в герундии (dormir→durmiendo) просто
+    // пишешь gerund: "durmiendo" вручную
+  }
 };

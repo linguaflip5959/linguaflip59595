@@ -53,6 +53,103 @@ const _0x4f2a = [
   ["NDIwMi1TT01TT0MtRkw=", "c29tc29jLWVtZWh0"],
 ];
 
+/* ===== ЮНИТ-ТЕСТЫ ГЕНЕРАТОРА ===== */
+function runEsConjugationTests() {
+  if (CURRENT_LANG.code !== "es") {
+    console.warn("Сначала выбери испанский язык");
+    return;
+  }
+  const EXPECTED = {
+    hablar: {
+      presente:  ["hablo","hablas","habla","hablamos","habláis","hablan"],
+      indefinido:["hablé","hablaste","habló","hablamos","hablasteis","hablaron"],
+      futuro:    ["hablaré","hablarás","hablará","hablaremos","hablaréis","hablarán"],
+      continuo:  ["estoy hablando","estás hablando","está hablando","estamos hablando","estáis hablando","están hablando"],
+      perfecto:  ["he hablado","has hablado","ha hablado","hemos hablado","habéis hablado","han hablado"],
+      ir_a:      ["voy a hablar","vas a hablar","va a hablar","vamos a hablar","vais a hablar","van a hablar"]
+    },
+    comer: {
+      presente:  ["como","comes","come","comemos","coméis","comen"],
+      indefinido:["comí","comiste","comió","comimos","comisteis","comieron"],
+      futuro:    ["comeré","comerás","comerá","comeremos","comeréis","comerán"],
+      continuo:  ["estoy comiendo","estás comiendo","está comiendo","estamos comiendo","estáis comiendo","están comiendo"],
+      perfecto:  ["he comido","has comido","ha comido","hemos comido","habéis comido","han comido"],
+      ir_a:      ["voy a comer","vas a comer","va a comer","vamos a comer","vais a comer","van a comer"]
+    },
+    vivir: {
+      presente:  ["vivo","vives","vive","vivimos","vivís","viven"],
+      indefinido:["viví","viviste","vivió","vivimos","vivisteis","vivieron"],
+      futuro:    ["viviré","vivirás","vivirá","viviremos","viviréis","vivirán"],
+      continuo:  ["estoy viviendo","estás viviendo","está viviendo","estamos viviendo","estáis viviendo","están viviendo"],
+      perfecto:  ["he vivido","has vivido","ha vivido","hemos vivido","habéis vivido","han vivido"],
+      ir_a:      ["voy a vivir","vas a vivir","va a vivir","vamos a vivir","vais a vivir","van a vivir"]
+    },
+    // бонус-проверка исключений
+    ser: {
+      presente:  ["soy","eres","es","somos","sois","son"],
+      indefinido:["fui","fuiste","fue","fuimos","fuisteis","fueron"],
+      futuro:    ["seré","serás","será","seremos","seréis","serán"],
+      continuo:  ["estoy siendo","estás siendo","está siendo","estamos siendo","estáis siendo","están siendo"],
+      perfecto:  ["he sido","has sido","ha sido","hemos sido","habéis sido","han sido"],
+      ir_a:      ["voy a ser","vas a ser","va a ser","vamos a ser","vais a ser","van a ser"]
+    },
+    tener: {
+      presente:  ["tengo","tienes","tiene","tenemos","tenéis","tienen"],
+      indefinido:["tuve","tuviste","tuvo","tuvimos","tuvisteis","tuvieron"],
+      futuro:    ["tendré","tendrás","tendrá","tendremos","tendréis","tendrán"],
+      continuo:  ["estoy teniendo","estás teniendo","está teniendo","estamos teniendo","estáis teniendo","están teniendo"],
+      perfecto:  ["he tenido","has tenido","ha tenido","hemos tenido","habéis tenido","han tenido"],
+      ir_a:      ["voy a tener","vas a tener","va a tener","vamos a tener","vais a tener","van a tener"]
+    },
+    hacer: {
+      presente:  ["hago","haces","hace","hacemos","hacéis","hacen"],
+      indefinido:["hice","hiciste","hizo","hicimos","hicisteis","hicieron"],
+      futuro:    ["haré","harás","hará","haremos","haréis","harán"],
+      continuo:  ["estoy haciendo","estás haciendo","está haciendo","estamos haciendo","estáis haciendo","están haciendo"],
+      perfecto:  ["he hecho","has hecho","ha hecho","hemos hecho","habéis hecho","han hecho"],
+      ir_a:      ["voy a hacer","vas a hacer","va a hacer","vamos a hacer","vais a hacer","van a hacer"]
+    }
+  };
+
+  let pass = 0, fail = 0;
+  for (const [verbKey, table] of Object.entries(EXPECTED)) {
+    for (const [tenseKey, forms] of Object.entries(table)) {
+      forms.forEach((expected, i) => {
+        const got = buildFormEs(verbKey, ES_PERSON_ORDER[i], tenseKey);
+        if (got === expected) pass++;
+        else { fail++; console.error(`✗ ${verbKey} / ${tenseKey} / ${ES_PERSON_ORDER[i]}: «${got}» ≠ «${expected}»`); }
+      });
+    }
+  }
+  console.log(`%cСпряжения: ${pass} OK, ${fail} FAIL`, "font-weight:bold;color:" + (fail ? "#9b2c2c" : "#3f6b3a"));
+}
+// runEsConjugationTests();
+
+function activePronouns() {
+  return CURRENT_LANG.hideVosotros
+    ? pronouns.filter((p) => p.key !== "vosotros")
+    : pronouns;
+}
+
+/* ===== ИСПАНСКИЙ ГЕНЕРАТОР СПРЯЖЕНИЙ ===== */
+const ES_PERSON_ORDER = ["yo","tu","el","nosotros","vosotros","ellos"];
+
+const ES_PRESENT_ENDINGS = {
+  ar: ["o","as","a","amos","áis","an"],
+  er: ["o","es","e","emos","éis","en"],
+  ir: ["o","es","e","imos","ís","en"]
+};
+const ES_INDEF_ENDINGS = {
+  ar: ["é","aste","ó","amos","asteis","aron"],
+  er: ["í","iste","ió","imos","isteis","ieron"],
+  ir: ["í","iste","ió","imos","isteis","ieron"]
+};
+// Приклеиваются к инфинитиву: hablar + é = hablaré
+const ES_FUTURO_ENDINGS = ["é","ás","á","emos","éis","án"];
+
+const esStem = (inf) => inf.slice(0, -2);
+const esType  = (inf) => inf.slice(-2); // "ar" | "er" | "ir"
+
 // Функция-дешифратор
 function _0x5b3c(encoded) {
   if (!encoded) return null;
@@ -111,9 +208,56 @@ const topics = [
   { key: "time", label: "Time" },
 ];
 
+function esPersonIndex(pronKey) {
+  const i = ES_PERSON_ORDER.indexOf(pronKey);
+  return i === -1 ? 0 : i;
+}
+
+function esGerund(vKey, v) {
+  return v.gerund || esStem(vKey) + (esType(vKey) === "ar" ? "ando" : "iendo");
+}
+function esParticiple(vKey, v) {
+  return v.participle || esStem(vKey) + (esType(vKey) === "ar" ? "ado" : "ido");
+}
+
+// Спряжение вспомогательного берём из тех же данных
+function esAux(auxKey, i) {
+  const aux = verbs[auxKey];
+  return aux && aux.presente ? aux.presente[i] : "???";
+}
+
+function buildFormEs(verbKey, pronKey, tenseKey) {
+  const v = verbs[verbKey];
+  const i = esPersonIndex(pronKey);
+  if (!v) return "";
+
+  // 1. Исключение лежит в данных — оно главнее правил
+  if (Array.isArray(v[tenseKey])) return v[tenseKey][i];
+
+  switch (tenseKey) {
+    case "presente":
+      return esStem(verbKey) + ES_PRESENT_ENDINGS[esType(verbKey)][i];
+    case "indefinido":
+      return esStem(verbKey) + ES_INDEF_ENDINGS[esType(verbKey)][i];
+    case "futuro":
+      return verbKey + ES_FUTURO_ENDINGS[i];
+    case "continuo":
+      return esAux("estar", i) + " " + esGerund(verbKey, v);
+    case "perfecto":
+      return esAux("haber", i) + " " + esParticiple(verbKey, v);
+    case "ir_a":
+      return esAux("ir", i) + " a " + verbKey;
+  }
+  return "";
+}
+
 function buildForm(verb, pronKey, tenseKey) {
+
+  if (CURRENT_LANG.code === "es") return buildFormEs(verb, pronKey, tenseKey);
+
   const v = verbs[verb];
   const isThird = pronKey === "he/she";
+
   switch (tenseKey) {
     case "ps":
       return isThird ? v.thirdSingular : v.base;
@@ -550,7 +694,7 @@ function updateCardContent() {
     document.getElementById("card-trans").style.display = "none";
     pInput.style.display = "block";
     pInput.value = "";
-    pInput.classList.remove("correct", "incorrect");
+    pInput.classList.remove("correct", "incorrect", "almost");
     pBtn.style.display = "block";
     pBtn.textContent = "Подсмотреть";
     cUi.style.display = "none";
@@ -654,40 +798,92 @@ document.getElementById("next-btn").addEventListener("click", (e) => {
   }
 });
 
+/* ===== ТОЛЕРАНТНОСТЬ К ОПЕЧАТКАМ ===== */
+
+// Нормализация: регистр, пробелы по краям, диакритика и пунктуация
+// está → esta, ёж → еж, "apple," → "apple"
+function normalizeAnswer(s) {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[.,!?;:]/g, "");
+}
+
+// Расстояние Левенштейна, двухрядная версия
+function levenshtein(a, b) {
+  const dp = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = dp[j];
+      dp[j] = Math.min(
+        dp[j] + 1,                                  // удаление буквы
+        dp[j - 1] + 1,                              // вставка буквы
+        prev + (a[i - 1] === b[j - 1] ? 0 : 1),     // замена
+      );
+      prev = tmp;
+    }
+  }
+  return dp[b.length];
+}
+
+// Сколько ошибок прощаем: короткие слова — никому (pan ≠ pen, это разные слова)
+function typoTolerance(len) {
+  if (len <= 3) return 0;
+  if (len <= 5) return 1;
+  return 2;
+}
+
+// Вердикт: "correct" | "almost" | "wrong" | "empty"
+function compareAnswers(userInput, correctWord) {
+  const val = normalizeAnswer(userInput);
+  const target = normalizeAnswer(correctWord);
+  if (!val) return "empty";
+  if (val === target) return "correct";
+  return levenshtein(val, target) <= typoTolerance(target.length)
+    ? "almost"
+    : "wrong";
+}
+
 document.getElementById("practice-btn").addEventListener("click", (e) => {
   e.stopPropagation();
   if (isAnimating) return;
   const c = filteredCards[cardIdx];
   const input = document.getElementById("practice-input");
-  const val = input.value.trim().toLowerCase();
-  const correct = c.word.toLowerCase();
+  const result = compareAnswers(input.value, c.word);
+  if (e.key === "Enter" || e.keyCode === 13) {
+    input.blur(); // прячем клавиатуру на телефоне, чтобы видеть переворот
+  }
 
-  if (val === "") {
+  if (result === "empty") {
     cardEl.classList.add("flipped");
     speak(c.word);
     return;
   }
 
-  if (val === correct) {
+  input.classList.remove("correct", "incorrect", "almost");
+  if (result === "correct") {
     input.classList.add("correct");
-    input.classList.remove("incorrect");
+  } else if (result === "almost") {
+    input.classList.add("almost");
+    toast("Почти! Правильно: " + c.word);
   } else {
     input.classList.add("incorrect");
-    input.classList.remove("correct");
   }
 
   setTimeout(() => {
     cardEl.classList.add("flipped");
     speak(c.word);
-  }, 400);
+  }, result === "almost" ? 800 : 400); // жёлтую рамку показываем чуть дольше
 });
 
-document.getElementById("practice-input").addEventListener("input", (e) => {
-  const pBtn = document.getElementById("practice-btn");
-  if (e.target.value.trim() !== "") {
-    pBtn.textContent = "Проверить";
-  } else {
-    pBtn.textContent = "Подсмотреть";
+document.getElementById("practice-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("practice-btn").click();
   }
 });
 
@@ -1179,7 +1375,7 @@ function renderTable() {
   let html = "<thead><tr><th></th>";
   tenses.forEach((t) => (html += `<th>${t.label}</th>`));
   html += "</tr></thead><tbody>";
-  pronouns.forEach((p) => {
+  activePronouns().forEach((p) => {
     html += `<tr><th>${p.label}</th>`;
     tenses.forEach((t) => {
       const form = buildForm(currentVerb, p.key, t.key);
@@ -1233,7 +1429,7 @@ document.querySelectorAll(".mode-btn").forEach((btn) => {
 });
 
 function nextInputTarget() {
-  const p = pronouns[Math.floor(Math.random() * pronouns.length)];
+  const p = activePronouns()[Math.floor(Math.random() * activePronouns().length)];
   const t = tenses[Math.floor(Math.random() * tenses.length)];
   inputTarget = {
     pronKey: p.key,
