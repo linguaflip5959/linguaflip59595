@@ -1,0 +1,769 @@
+/* ===== ИСПРАВЛЕННЫЕ ПРЕМИУМ АНИМАЦИИ ===== */
+
+/* 0. Базовый переворот (по умолчанию) */
+.card.anim-default { transition: transform .7s cubic-bezier(.4,.2,.2,1); }
+.card.anim-default.flipped { transform: rotateY(180deg); }
+
+/* 1. Кувырок (3D Tumble) */
+.card.anim-3d-tumble { transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+.card.anim-3d-tumble.flipped { transform: rotateX(360deg) rotateY(180deg); }
+
+/* 2. Страница книги (Page Flip) - Исправлено улетание */
+.card.anim-page-flip { transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1); transform-origin: center center; }
+.card.anim-page-flip.flipped { transform: rotateY(180deg) rotateZ(-5deg); }
+
+/* 3. Зум-Переворот (Zoom Flip) - Исправленный пульсирующий зум */
+.card.anim-zoom-flip.flipped {
+  animation: zoomFlipForward 0.6s ease-in-out forwards;
+}
+.card.anim-zoom-flip:not(.flipped) {
+  animation: zoomFlipReverse 0.6s ease-in-out forwards;
+}
+
+@keyframes zoomFlipForward {
+  0% { transform: scale(1) rotateY(0deg); }
+  50% { transform: scale(0.7) rotateY(90deg); } /* В середине сжимаем и поворачиваем ребром */
+  100% { transform: scale(1) rotateY(180deg); } /* Возвращаем размер и достаем оборот */
+}
+
+@keyframes zoomFlipReverse {
+  0% { transform: scale(1) rotateY(180deg); }
+  50% { transform: scale(0.7) rotateY(90deg); }
+  100% { transform: scale(1) rotateY(0deg); }
+}
+
+/* 4. Сальто-Вверх (Vertical Flip) - Исправлен перевернутый текст */
+.card.anim-vertical-flip { transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+.card.anim-vertical-flip .face.back { transform: rotateX(180deg); /* Меняем Y на X, чтобы текст читался */ }
+.card.anim-vertical-flip.flipped { transform: rotateX(180deg); }
+
+/* 5. Штопор / Твист (Corkscrew Flip) */
+.card.anim-twist-flip { transition: none; }
+.card.anim-twist-flip.flipped {
+  animation: corkscrewForward 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+.card.anim-twist-flip:not(.flipped) {
+  animation: corkscrewReverse 0.9s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+@keyframes corkscrewForward {
+  0% { transform: rotateY(0deg) rotateX(0deg); }
+  40% { transform: rotateY(90deg) rotateX(45deg); } /* Закручиваемся и тормозим */
+  55% { transform: rotateY(110deg) rotateX(45deg); } /* Задержка, нижняя часть "догоняет" */
+  100% { transform: rotateY(180deg) rotateX(0deg); } /* Раскручиваемся и встаем ровно */
+}
+
+@keyframes corkscrewReverse {
+  0% { transform: rotateY(180deg) rotateX(0deg); }
+  40% { transform: rotateY(90deg) rotateX(-45deg); }
+  55% { transform: rotateY(70deg) rotateX(-45deg); }
+  100% { transform: rotateY(0deg) rotateX(0deg); }
+}
+
+/* 6. Кибер-Глитч (Cyber Reveal) */
+.card.anim-cyber-reveal {
+  transform-style: flat; 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card.anim-cyber-reveal.flipped {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 24px -8px var(--shadow-color-1);
+}
+
+.card.anim-cyber-reveal .face {
+  -webkit-backface-visibility: visible;
+  backface-visibility: visible;
+  overflow: hidden; /* Чтобы блик не вылезал за края */
+}
+
+/* Оборотная сторона становится полупрозрачным оверлеем */
+.card.anim-cyber-reveal .face.back {
+  transform: none; 
+  opacity: 0;
+  z-index: 2; 
+  /* Полупрозрачный фон под светлую тему */
+  background: rgba(251, 246, 236, 0.88); 
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.3s ease;
+}
+
+/* Тёмная тема: делаем оверлей тёмным */
+html.dark .card.anim-cyber-reveal .face.back {
+  background: rgba(26, 20, 15, 0.85);
+}
+
+.card.anim-cyber-reveal.flipped .face.back {
+  opacity: 1;
+}
+
+/* Эффект размытия лицевой стороны при тапе */
+.card.anim-cyber-reveal.flipped .face.front .word,
+.card.anim-cyber-reveal.flipped .face.front .transcription,
+.card.anim-cyber-reveal.flipped .face.front .card-tag,
+.card.anim-cyber-reveal.flipped .face.front .hint {
+  filter: blur(3px);
+  transition: filter 0.3s ease;
+}
+
+/* === Логика блика (Shine Effect) === */
+
+/* Блик на лицевой стороне (периодический) */
+.card.anim-cyber-reveal .face.front::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.12) 50%, transparent 100%);
+  transform: skewX(-25deg) translateX(-200%);
+  pointer-events: none;
+  z-index: 5;
+  animation: cyber-idle-shine 10s ease-in-out infinite;
+  transition: opacity 0.2s ease; /* Плавно скрываем, когда открываем перевод */
+}
+
+/* Скрываем фоновый блик, когда карточка открыта, чтобы не было двойного эффекта */
+.card.anim-cyber-reveal.flipped .face.front::after {
+  opacity: 0;
+}
+
+@keyframes cyber-idle-shine {
+  0%, 60% { transform: skewX(-25deg) translateX(-200%); }
+  80% { transform: skewX(-25deg) translateX(300%); }
+  100% { transform: skewX(-25deg) translateX(300%); }
+}
+
+/* Блик на обратной стороне (при тапе) */
+.card.anim-cyber-reveal .face.back::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+  transform: skewX(-25deg) translateX(-200%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.card.anim-cyber-reveal.flipped .face.back::after {
+  animation: cyber-tap-shine 0.7s ease-out forwards;
+}
+
+@keyframes cyber-tap-shine {
+  0% { transform: skewX(-25deg) translateX(-200%); }
+  100% { transform: skewX(-25deg) translateX(300%); }
+}
+
+/* ===== Эффект пузырьков (Bubbly Button) ===== */
+.bubbly-button {
+  font-family: 'DM Sans', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: transform ease-in 0.1s, box-shadow ease-in 0.25s, background-color 0.2s;
+  box-shadow: 0 4px 10px -4px rgba(0,0,0,.3);
+  border-radius: 12px;
+  overflow: visible;
+  z-index: 1;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.bubbly-button::before,
+.bubbly-button::after {
+  position: absolute;
+  content: '';
+  display: block;
+  width: 140%;
+  height: 100%;
+  left: -20%;
+  z-index: -1000;
+  transition: all ease-in-out 0.5s;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.bubbly-button::before {
+  display: none;
+  top: -75%;
+  background-image:  
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 20%, var(--btn-bg) 20%, transparent 30%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%), 
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, var(--btn-bg) 15%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%);
+  background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%, 10% 10%, 18% 18%;
+}
+
+.bubbly-button::after {
+  display: none;
+  bottom: -75%;
+  background-image:  
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%), 
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, transparent 10%, var(--btn-bg) 15%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%),
+    radial-gradient(circle, var(--btn-bg) 20%, transparent 20%);
+  background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 10% 10%, 20% 20%;
+}
+
+.bubbly-button:active {
+  transform: scale(0.97);
+  background-color: var(--btn-bg-dark);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.bubbly-button.animate::before {
+  display: block;
+  animation: topBubbles ease-in-out 0.75s forwards;
+}
+
+.bubbly-button.animate::after {
+  display: block;
+  animation: bottomBubbles ease-in-out 0.75s forwards;
+}
+
+@keyframes topBubbles {
+  0% { background-position: 5% 90%, 10% 90%, 10% 90%, 15% 90%, 25% 90%, 25% 90%, 40% 90%, 55% 90%, 70% 90%; }
+  50% { background-position: 0% 80%, 0% 20%, 10% 40%, 20% 0%, 30% 30%, 22% 50%, 50% 50%, 65% 20%, 90% 30%; }
+  100% { background-position: 0% 70%, 0% 10%, 10% 30%, 20% -10%, 30% 20%, 22% 40%, 50% 40%, 65% 10%, 90% 20%; background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
+}
+
+@keyframes bottomBubbles {
+  0% { background-position: 10% -10%, 30% 10%, 55% -10%, 70% -10%, 85% -10%, 70% -10%, 70% 0%; }
+  50% { background-position: 0% 80%, 20% 80%, 45% 60%, 60% 100%, 75% 70%, 95% 60%, 105% 0%; }
+  100% { background-position: 0% 90%, 20% 90%, 45% 70%, 60% 110%, 75% 80%, 95% 70%, 110% 10%; background-size: 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%, 0% 0%; }
+}
+
+.know-btn { --btn-bg: var(--ok); --btn-bg-dark: #2f5230; background-color: var(--ok); color: #fff; }
+.check-btn { --btn-bg: var(--accent); --btn-bg-dark: #9a3309; background-color: var(--accent); color: #fff; }
+.donate-btn { --btn-bg: var(--err); --btn-bg-dark: #6b1c1c; background-color: var(--err); color: #fff; font-size: 18px; }
+
+/* ===== Эффект рамки (Border Hover) ===== */
+.effect-border {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.effect-border::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0;
+  width: 2px; height: 0;
+  background: var(--accent);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.effect-border::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 0; height: 2px;
+  background: var(--accent);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.effect-border:hover::before { height: 100%; }
+.effect-border:hover::after { width: 100%; }
+
+/* ===== ЦВЕТОВЫЕ ТЕМЫ ===== */
+
+/* ===== ТЕМА: ОКЕАН (С анимированным фоном) ===== */
+html.theme-ocean {
+  /* Светлая версия Океана */
+  --bg: #eef7fb;
+  --bg2: #d8eff1;
+  --paper: #ffffff;
+  --ink: #0b3550;
+  --ink-soft: #075985;
+  --muted: #0284c7;
+  --line: #bae6fd;
+  --accent: #0e9aa7; /* Бирюзовый */
+  --accent-light: #35d0c0; /* Аква */
+  --accent-soft: #cffafe;
+  --ok: #0e9aa7;
+  --err: #ff7e6b;
+
+  --body-gradient-1: rgba(53, 208, 192, 0.2);
+  --body-gradient-2: rgba(14, 154, 167, 0.1);
+  --front-card-gradient: #ffffff;
+  --back-card-bg-1: #e0f7fa;
+  --back-card-bg-2: #b2ebf2;
+  --back-card-text: #004d5b;
+  --back-card-tag: #00838f;
+  --back-card-glow-1: rgba(53, 208, 192, 0.2);
+  --back-card-glow-2: rgba(255, 255, 255, 0.3);
+  --example-highlight: #0e9aa7;
+  --example-ru: #075985;
+
+  --input-bg-1: #ffffff;
+  --input-bg-2: #eef7fb;
+  --input-coord: #0e9aa7;
+  --input-subtext: #0284c7;
+  --input-field-bg: #eef7fb;
+  --input-field-border: #bae6fd;
+  --input-field-bg-focus: #ffffff;
+  --input-placeholder: #0284c7;
+
+  --bottom-nav-bg: rgba(238, 247, 251, 0.92);
+  --bottom-nav-shadow: rgba(14, 154, 167, 0.2);
+  --shadow-color-1: rgba(14, 154, 167, 0.15);
+  --shadow-color-2: rgba(14, 154, 167, 0.05);
+  --chip-active-shadow: rgba(14, 154, 167, 0.35);
+}
+
+/* Тёмная версия Океана (Глубина) */
+html.dark.theme-ocean {
+  --bg: #051d30;
+  --bg2: #062238;
+  --paper: #0c3050;
+  --ink: #e6f4f7;
+  --ink-soft: #8fb0c0;
+  --muted: #6f90a3;
+  --line: rgba(150, 190, 210, 0.22);
+  --accent: #35d0c0;
+  --accent-light: #5ce6d2;
+  --accent-soft: #0c3050;
+
+  --body-gradient-1: rgba(38, 160, 190, 0.4);
+  --body-gradient-2: rgba(6, 60, 90, 0.6);
+  --front-card-gradient: #0c3050;
+  --back-card-bg-1: #093854;
+  --back-card-bg-2: #061f33;
+  --back-card-text: #e9f7f8;
+  --back-card-tag: #35d0c0;
+  --back-card-glow-1: rgba(53, 208, 192, 0.15);
+  --back-card-glow-2: rgba(53, 208, 192, 0.05);
+  --example-highlight: #f2c979; /* Песочный */
+  --example-ru: #8fb0c0;
+
+  --input-bg-1: #0c3050;
+  --input-bg-2: #062238;
+  --input-coord: #35d0c0;
+  --input-subtext: #8fb0c0;
+  --input-field-bg: rgba(53, 208, 192, 0.08);
+  --input-field-border: rgba(53, 208, 192, 0.15);
+  --input-field-bg-focus: rgba(53, 208, 192, 0.12);
+  --input-placeholder: #4c718c;
+
+  --bottom-nav-bg: rgba(12, 42, 66, 0.92);
+  --bottom-nav-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-color-1: rgba(0, 0, 0, 0.6);
+  --shadow-color-2: rgba(0, 0, 0, 0.4);
+  --chip-active-shadow: rgba(53, 208, 192, 0.35);
+}
+
+/* === АНИМИРОВАННЫЙ ОКЕАНСКИЙ ФОН === */
+html.theme-ocean #ocean-bg { display: block !important; }
+
+#ocean-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; color: var(--accent); }
+
+/* Световые лучи */
+.ray { position: fixed; top: -90px; z-index: -1; width: 120px; height: 72vh; filter: blur(14px); background: linear-gradient(180deg, rgba(255,255,255,.16), transparent 82%); animation: raySway 8s ease-in-out infinite alternate; }
+.r1 { left: 12%; }
+.r2 { left: 48%; width: 80px; animation-delay: 2.5s; opacity: .7; }
+.r3 { left: 74%; width: 58px; animation-delay: 4.2s; opacity: .5; }
+@keyframes raySway { from { transform: skewX(-14deg) translateX(-12px); opacity: .45; } to { transform: skewX(-9deg) translateX(14px); opacity: .85; } }
+
+/* Пузырьки */
+#bubbles { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+#bubbles i { position: absolute; bottom: -24px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), rgba(255,255,255,.06) 62%); border: 1px solid rgba(255,255,255,.28); animation: rise linear infinite; }
+@keyframes rise { 0% { transform: translateY(0) translateX(0); } 25% { transform: translateY(-28vh) translateX(11px); } 50% { transform: translateY(-56vh) translateX(-9px); } 75% { transform: translateY(-84vh) translateX(11px); } 100% { transform: translateY(-114vh) translateX(0); } }
+
+/* Плывущие рыбки */
+.drift { position: fixed; z-index: -1; pointer-events: none; animation: drift linear infinite; color: var(--accent-light); }
+.d1 { top: 58%; width: 46px; opacity: .35; animation-duration: 34s; }
+.d2 { top: 24%; width: 28px; opacity: .22; animation-duration: 48s; animation-delay: -22s; }
+@keyframes drift { 0% { transform: translateX(-14vw) translateY(0); } 25% { transform: translateX(18vw) translateY(-14px); } 50% { transform: translateX(50vw) translateY(7px); } 75% { transform: translateX(82vw) translateY(-10px); } 100% { transform: translateX(116vw) translateY(0); } }
+
+/* Морское дно */
+.seabed { position: fixed; left: 0; right: 0; bottom: -4px; width: 100%; height: 150px; z-index: -1; pointer-events: none; opacity: 0.2; color: var(--accent); }
+html.dark.theme-ocean .seabed { opacity: 0.6; }
+
+/* Орбита вокруг логотипа (Пузырек) */
+html.theme-ocean .logo-orbit::before {
+  background: radial-gradient(circle at 32% 30%, rgba(255,255,255,.85), rgba(255,255,255,.15));
+  border: 1px solid rgba(255,255,255,.5);
+  box-shadow: 0 0 8px 2px rgba(180,240,255,.5);
+}
+
+/* Прозрачная нижняя панель, чтобы было видно морское дно */
+html.theme-ocean .bottom-nav {
+  background: transparent;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  border-top: none;
+}
+
+/* Контейнер с кнопками делаем полупрозрачным */
+html.theme-ocean .bottom-nav-inner {
+  background: rgba(12, 42, 66, 0.7);
+  border: 1px solid var(--line);
+}
+
+/* Активная кнопка (Карточки) становится бирюзовой */
+html.theme-ocean .nav-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  color: #04283c; /* Тёмный текст для контраста */
+  border-color: transparent;
+  box-shadow: 0 12px 26px -9px rgba(14, 154, 167, 0.85), 0 0 20px rgba(53, 208, 192, 0.3);
+}
+
+/* Для светлой версии Океана тоже делаем кнопку акцентной */
+html.theme-ocean:not(.dark) .nav-tab.active {
+  color: #ffffff;
+}
+
+/* ===== ТЕМА: ЛЕС (С анимированным фоном) ===== */
+html.theme-forest {
+  --bg: #f1f3e6;
+  --bg2: #e9edda;
+  --paper: #fdfcf5;
+  --ink: #22382a;
+  --ink-soft: #24402f;
+  --muted: #71816b;
+  --line: #d9dec6;
+  --accent: #1d5c40; /* Сосновый зеленый */
+  --accent-light: #2c7a4b; /* Лист */
+  --accent-soft: #e2eed8;
+  --ok: #059669;
+  --err: #b91c1c;
+
+  --body-gradient-1: rgba(224, 165, 46, 0.16); /* Солнечный свет */
+  --body-gradient-2: rgba(125, 170, 90, 0.18); /* Росток */
+  --front-card-gradient: #f5fdf5;
+  --back-card-bg-1: rgb(128, 189, 150); /* Светлый весенний зеленый */
+  --back-card-bg-2: #8bdfa8; /* Немного темнее к краям */
+  --back-card-text: #14532d; /* Темно-зеленый текст для контраста */
+  --back-card-tag: #15803d;
+  --back-card-glow-1: rgba(22, 163, 74, 0.12);
+  --back-card-glow-2: rgba(22, 163, 74, 0.06);
+  --example-highlight: #16a34a; /* Зеленый акцент для выделенного слова */
+  --example-ru: #166534;
+
+  --input-bg-1: #fdfcf5;
+  --input-bg-2: #f1f3e6;
+  --input-coord: #1d5c40;
+  --input-subtext: #71816b;
+  --input-field-bg: #f1f3e6;
+  --input-field-border: #d9dec6;
+  --input-field-bg-focus: #fdfcf5;
+  --input-placeholder: #71816b;
+
+  --bottom-nav-bg: rgba(241, 243, 230, 0.92);
+  --bottom-nav-shadow: rgba(34, 56, 42, 0.2);
+  --shadow-color-1: rgba(34, 56, 42, 0.15);
+  --shadow-color-2: rgba(34, 56, 42, 0.05);
+  --chip-active-shadow: rgba(29, 92, 64, 0.35);
+}
+
+/* Тёмная версия Леса (Ночной лес) */
+html.dark.theme-forest {
+  --bg: #0a1f0e;
+  --bg2: #0f2a14;
+  --paper: #0f2a14;
+  --ink: #dcfce7;
+  --ink-soft: #bbf7d0;
+  --muted: #4ade80;
+  --line: #14532d;
+  --accent: #4ade80;
+  --accent-light: #86efac;
+  --accent-soft: #14532d;
+
+  --body-gradient-1: rgba(74, 222, 128, 0.15);
+  --body-gradient-2: rgba(15, 42, 20, 0.5);
+  --front-card-gradient: #0f2a14;
+  --back-card-bg-1: #14532d; /* Глубокий хвойный зеленый */
+  --back-card-bg-2: #0f2a14; /* Ночной лес, но не угольно-черный */
+  --back-card-text: #dcfce7; /* Светлый текст */
+  --back-card-tag: #4ade80;
+  --back-card-glow-1: rgba(74, 222, 128, 0.15);
+  --back-card-glow-2: rgba(74, 222, 128, 0.05);
+  --example-highlight: #86efac; /* Светло-зеленый неон для выделения */
+  --example-ru: #4ade80;
+
+  --input-bg-1: #0f2a14;
+  --input-bg-2: #0a1f0e;
+  --input-coord: #86efac;
+  --input-subtext: #4ade80;
+  --input-field-bg: rgba(74, 222, 128, 0.08);
+  --input-field-border: rgba(74, 222, 128, 0.15);
+  --input-field-bg-focus: rgba(74, 222, 128, 0.12);
+  --input-placeholder: #15803d;
+
+  --bottom-nav-bg: rgba(15, 42, 20, 0.92);
+  --bottom-nav-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-color-1: rgba(0, 0, 0, 0.6);
+  --shadow-color-2: rgba(0, 0, 0, 0.4);
+  --chip-active-shadow: rgba(74, 222, 128, 0.35);
+}
+
+/* === АНИМИРОВАННЫЙ ЛЕСНОЙ ФОН === */
+html.theme-forest #forest-bg { display: block !important; }
+
+#forest-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; color: #1d5c40; }
+
+/* Солнечные пятна */
+.sunspot { position: fixed; border-radius: 50%; filter: blur(26px); background: radial-gradient(circle, rgba(240,196,84,.4), transparent 70%); animation: breathe 9s ease-in-out infinite alternate; }
+.sp1 { width: 220px; height: 220px; top: 7%; left: -70px; }
+.sp2 { width: 270px; height: 270px; top: 36%; right: -100px; animation-delay: 3s; }
+.sp3 { width: 180px; height: 180px; bottom: 22%; left: 16%; animation-delay: 5.5s; }
+@keyframes breathe { from { opacity: .35; transform: scale(1); } to { opacity: .75; transform: scale(1.12); } }
+
+/* Падающие листья */
+#leaves { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+#leaves i { position: absolute; top: -24px; border-radius: 0 62% 0 62%; box-shadow: 0 1px 2px rgba(34,56,42,.15); animation: fall linear infinite; }
+@keyframes fall { 0% { transform: translateY(-6vh) translateX(0) rotate(0deg); } 25% { transform: translateY(24vh) translateX(4vw) rotate(95deg); } 50% { transform: translateY(50vh) translateX(-3vw) rotate(185deg); } 75% { transform: translateY(76vh) translateX(4vw) rotate(275deg); } 100% { transform: translateY(106vh) translateX(-2vw) rotate(360deg); } }
+
+/* Силуэт леса внизу */
+.treeline { position: fixed; left: 0; right: 0; bottom: -6px; width: 100%; height: 160px; opacity: 0.08; color: var(--accent); }
+
+/* Орбита вокруг логотипа (Зеленый листик) */
+html.theme-forest .logo-orbit::before {
+  background: #7fae5e;
+  border-radius: 0 65% 0 65%;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px 2px rgba(127,174,94,.7);
+}
+
+/* Прозрачная нижняя панель */
+html.theme-forest .bottom-nav {
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: none;
+}
+
+/* Контейнер с кнопками в светлом Лесу */
+html.theme-forest:not(.dark) .bottom-nav-inner {
+  background: rgba(241, 243, 230, 0.75); /* Светлая полупрозрачная */
+  border: 1px solid var(--line);
+}
+
+/* Активная кнопка в светлом Лесу (зеленая, белый текст) */
+html.theme-forest:not(.dark) .nav-tab.active {
+  background: linear-gradient(135deg, #2f8355, #1d5c40);
+  color: #fdfcf5;
+  border-color: transparent;
+  box-shadow: 0 4px 12px -4px rgba(29, 92, 64, 0.5);
+}
+
+/* Контейнер с кнопками в темном Лесу */
+html.dark.theme-forest .bottom-nav-inner {
+  background: rgba(15, 42, 20, 0.8); /* Темная полупрозрачная */
+}
+
+/* Активная кнопка в темном Лесу (яркая, темный текст) */
+html.dark.theme-forest .nav-tab.active {
+  background: linear-gradient(135deg, #4ade80, #15803d);
+  color: #0a1f0e; /* Темный текст для контраста */
+  border-color: transparent;
+  box-shadow: 0 4px 12px -4px rgba(74, 222, 128, 0.4);
+}
+
+/* ===== ТЕМА: КОСМОС (С анимированным фоном) ===== */
+html.theme-cosmos {
+  --bg: #070b1a;
+  --bg2: #101636;
+  --paper: #101636;
+  --ink: #e8ecff;
+  --ink-soft: #cfd4f2;
+  --muted: #8b93b8;
+  --line: rgba(140, 150, 200, 0.22);
+  --accent: #8f7bf5;
+  --accent-light: #a78bfa;
+  --accent-soft: rgba(143, 123, 245, 0.18);
+  --ok: #49d6c2;
+  --err: #ff7b7b;
+
+  --body-gradient-1: rgba(124, 92, 224, 0.28);
+  --body-gradient-2: rgba(73, 214, 194, 0.10);
+  --front-card-gradient: #161d44;
+  --back-card-bg-1: #dcfce7; /* Светлый весенний зеленый */
+  --back-card-bg-2: #bbf7d0; /* Немного темнее к краям */
+  --back-card-text: #14532d; /* Темно-зеленый текст для контраста */
+  --back-card-tag: #15803d;
+  --back-card-glow-1: rgba(22, 163, 74, 0.12);
+  --back-card-glow-2: rgba(22, 163, 74, 0.06);
+  --example-highlight: #16a34a; /* Зеленый акцент для выделенного слова */
+  --example-ru: #166534;
+
+  --input-bg-1: #101636;
+  --input-bg-2: #070b1a;
+  --input-coord: #f2c14e;
+  --input-subtext: #8b93b8;
+  --input-field-bg: rgba(143, 123, 245, 0.08);
+  --input-field-border: rgba(143, 123, 245, 0.25);
+  --input-field-bg-focus: rgba(143, 123, 245, 0.15);
+  --input-placeholder: #6b21a8;
+
+  --bottom-nav-bg: rgba(16, 21, 46, 0.86);
+  --bottom-nav-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-color-1: rgba(0, 0, 0, 0.75);
+  --shadow-color-2: rgba(0, 0, 0, 0.4);
+  --chip-active-shadow: rgba(143, 123, 245, 0.45);
+}
+
+/* Подсветка логотипа */
+html.theme-cosmos .brand .brand-logo {
+  box-shadow: 0 0 20px rgba(143, 123, 245, 0.5);
+  border-radius: 50%;
+  padding: 2px;
+  background: linear-gradient(150deg, #8f7bf5, #5a3fd0);
+}
+
+/* Чипсы в Космосе */
+html.theme-cosmos .chip.active {
+  background: linear-gradient(150deg, #8f7bf5, #5a3fd0);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 10px -3px rgba(143, 123, 245, 0.45);
+}
+
+/* Текстовые поля ввода */
+html.theme-cosmos .input-row input { color: var(--back-card-text); }
+html.theme-cosmos .input-row input::placeholder { color: #6b21a8; }
+
+/* === АНИМИРОВАННЫЙ КОСМИЧЕСКИЙ ФОН === */
+html.theme-cosmos #cosmos-bg { display: block !important; }
+
+#cosmos-bg {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
+}
+
+/* Звёзды */
+#stars i {
+  position: absolute; border-radius: 50%; background: #fff;
+  animation: twinkle ease-in-out infinite alternate;
+}
+#stars i.gold { background: #f2c14e; }
+#stars i.teal { background: #49d6c2; }
+@keyframes twinkle {
+  from { opacity: 0.12; transform: scale(0.7); }
+  to { opacity: 0.95; transform: scale(1.2); }
+}
+
+/* Метеоры */
+.shoot {
+  position: fixed; z-index: -1; pointer-events: none; height: 2px; width: 140px; border-radius: 2px; opacity: 0;
+  background: linear-gradient(90deg, transparent, #fff, transparent);
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+  animation: shoot 11s linear infinite;
+}
+.s1 { top: 12%; animation-delay: 2.5s; }
+.s2 { top: 56%; width: 90px; animation-delay: 8s; }
+@keyframes shoot {
+  0% { transform: translate(-16vw, 0) rotate(-14deg); opacity: 0; }
+  2.5% { opacity: 1; }
+  11% { transform: translate(72vw, 19vh) rotate(-14deg); opacity: 0; }
+  100% { transform: translate(72vw, 19vh) rotate(-14deg); opacity: 0; }
+}
+
+/* Планеты */
+.planet { position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; }
+.planet-a {
+  width: 150px; height: 150px; right: -52px; top: 110px;
+  background: radial-gradient(circle at 32% 28%, #5a4bd4, #241a63 65%, #120d33);
+  box-shadow: inset -20px -16px 44px rgba(0,0,0,.6), 0 0 60px rgba(124,108,240,.22);
+}
+.planet-a::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 225px; height: 56px;
+  border: 2px solid rgba(242, 193, 78, 0.32); border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(-18deg);
+}
+.planet-b {
+  width: 52px; height: 52px; left: -16px; bottom: 180px; opacity: 0.85;
+  background: radial-gradient(circle at 35% 30%, #57e0c8, #157a6d 72%);
+  box-shadow: inset -8px -8px 18px rgba(0,0,0,.45), 0 0 30px rgba(73,214,194,.25);
+}
+
+/* Орбита вокруг логотипа (по умолчанию скрыта) */
+.logo { position: relative; width: 42px; height: 42px; perspective: 320px; }
+.logo .brand-logo { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; box-shadow: 0 4px 10px -3px var(--chip-active-shadow); }
+
+.logo-orbit {
+  display: none; /* <--- СКРЫВАЕМ ОРБИТУ ДЛЯ ВСЕХ ТЕМ */
+  position: absolute; inset: -7px; border-radius: 50%; pointer-events: none;
+  animation: orbit 6.5s linear infinite;
+}
+.logo-orbit::before {
+  content: ""; position: absolute; top: -2px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px;
+  border-radius: 50%; background: #f2c14e; /* <--- ЗОЛОТОЙ ЦВЕТ СОЛНЦА */
+  box-shadow: 0 0 8px 2px rgba(242, 193, 78, 0.8); /* <--- ЗОЛОТОЕ СВЕЧЕНИЕ */
+}
+
+/* Включаем орбиту только в Космосе */
+html.theme-cosmos .logo-orbit {
+  display: block;
+}
+@keyframes orbit { to { transform: rotate(360deg); } }
+
+/* ===== ПОЛИРОВКА ТЕМЫ КОСМОС ===== */
+
+/* Прозрачная нижняя панель, чтобы не перекрывать планеты и звёзды */
+html.theme-cosmos .bottom-nav {
+  background: transparent !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-top: none;
+}
+
+/* Контейнер с кнопками становится полупрозрачным фиолетовым */
+html.theme-cosmos .bottom-nav-inner {
+  background: rgba(30, 20, 56, 0.75);
+  border: 1px solid var(--line);
+}
+
+/* Активная кнопка (Карточки) становится цвета фиолетового чипа */
+html.theme-cosmos .nav-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-light)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px -4px rgba(143, 123, 245, 0.5);
+}
+
+/* Кнопка "Знаю" — цвет зелёной планеты */
+html.theme-cosmos .know-btn {
+  background: linear-gradient(135deg, #57e0c8, #157a6d) !important;
+  box-shadow: 0 4px 12px -4px rgba(73, 214, 194, 0.5);
+}
+
+/* Жёстко исправляем цвета карточки, чтобы не было багов с Лесом */
+html.theme-cosmos .face.front,
+html.dark.theme-cosmos .face.front {
+  background: radial-gradient(120% 60% at 50% 0%, #221a3d 0%, #1e1438 60%) !important;
+}
+
+html.theme-cosmos .face.back,
+html.dark.theme-cosmos .face.back {
+  background: radial-gradient(120% 60% at 50% 0%, #1a1233 0%, #0f0a1e 70%) !important;
+}
+/* Жёстко фиксируем цвета ТЕКСТА для Космоса */
+html.theme-cosmos .back .translation,
+html.theme-cosmos .example-en {
+  color: #f1eeff !important; /* Светлый фиолетово-белый текст */
+}
+html.theme-cosmos .back .card-tag {
+  color: #a78bfa !important; /* Фиолетовый тег */
+}
+html.theme-cosmos .example-en b {
+  color: #f2c14e !important; /* Золотой для выделенного слова */
+}
+html.theme-cosmos .example-ru {
+  color: #a78bfa !important; /* Темный фиолетовый для перевода примера */
+}
