@@ -629,9 +629,13 @@ function updateFilteredCards() {
   if (currentTopic === "all") {
     baseCards = deck;
   } else if (currentTopic === "difficult") {
-    baseCards = deck.filter((c) => progress.marks[c.word] && progress.marks[c.word].box === 1);
+    baseCards = deck.filter(
+      (c) => progress.marks[c.word] && progress.marks[c.word].box === 1,
+    );
   } else if (currentTopic === "my") {
     baseCards = userCards;
+  } else if (currentTopic.startsWith("my-")) {
+    baseCards = userCards.filter((c) => c.topic === currentTopic);
   } else {
     baseCards = deck.filter((c) => c.topic === currentTopic);
   }
