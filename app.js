@@ -20,8 +20,10 @@ let isConstructorMode = false;
 let currentLevel = "A1";
 
 // Тактильный отклик (если поддерживается)
+let userTouchedPage = false;
+document.addEventListener("pointerdown", () => (userTouchedPage = true), { once: true, capture: true });
 function vibrate(ms) {
-  if (navigator.vibrate) navigator.vibrate(ms);
+  if (navigator.vibrate && userTouchedPage) navigator.vibrate(ms);
 }
 
 const AVAILABLE_ANIMATIONS = [
@@ -1842,14 +1844,26 @@ if (giftApplyBtn) {
 const saveBtnModal = document.getElementById('save-btn-modal');
 if (saveBtnModal) {
   saveBtnModal.addEventListener('click', () => {
-    // Собираем «Мои» слова со всех языковых колод
     const userCardsAll = {};
     Object.keys(LANGUAGES).forEach((code) => {
       const cards = getUserCardsFor(code);
       if (cards.length) userCardsAll[code] = cards;
     });
+    // Банк фраз тоже в файл — он строится через VPN, терять обиднее всего
+    const sentenceBanks = {};
+    Object.keys(LANGUAGES).forEach((code) => {
+      try {
+        const raw = localStorage.getItem("linguaflip_sentences_" + code);
+        if (raw && raw !== "{}") sentenceBanks[code] = JSON.parse(raw);
+      } catch (e) {}
+    });
     const dataStr = JSON.stringify(
-      { progress: progress, userCardsAll: userCardsAll },
+      {
+        progress: progress,
+        progressLang: CURRENT_LANG.code, // ← язык прогресса: restore больше не перепутает слоты
+        userCardsAll: userCardsAll,
+        sentenceBanks: sentenceBanks,
+      },
       null,
       2,
     );
@@ -1915,26 +1929,48 @@ if (confirmOkBtn && confirmModal) {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target.result);
-        progress = data.progress || data; // старый бэкап = сам progress
+        const imported = data.progress || data; // старый формат = сам progress
+
+        // 1. Колоды слов — всегда в свои слоты
         if (data.userCardsAll) {
-          // новый формат: все колоды разом
           Object.keys(LANGUAGES).forEach((code) => {
             if (Array.isArray(data.userCardsAll[code]))
               setUserCardsFor(code, data.userCardsAll[code]);
           });
-          userCards = getUserCardsFor(CURRENT_LANG.code);
         } else if (Array.isArray(data.userCards)) {
-          // старый формат: колода только текущего языка
-          userCards = data.userCards;
-          saveUserCards();
+          setUserCardsFor(CURRENT_LANG.code, data.userCards);
         }
-        if (!progress.stats) progress.stats = { correct: 0, incorrect: 0 };
-        if (!progress.marks) progress.marks = {};
-        saveProgress();
-        loadProgress();
-        renderTopicChips();
-        renderCard();
-        toast("Прогресс восстановлен");
+        // 2. Банки фраз — тоже в свои слоты
+        if (data.sentenceBanks) {
+          Object.keys(data.sentenceBanks).forEach((code) => {
+            localStorage.setItem(
+              "linguaflip_sentences_" + code,
+              JSON.stringify(data.sentenceBanks[code])
+            );
+          });
+        }
+        userCards = getUserCardsFor(CURRENT_LANG.code);
+
+        if (!imported.stats) imported.stats = { correct: 0, incorrect: 0 };
+        if (!imported.marks) imported.marks = {};
+
+        // 3. Прогресс — в СВОЮ колоду (фикс улики 2)
+        const srcLang = data.progressLang || CURRENT_LANG.code;
+        if (srcLang === CURRENT_LANG.code) {
+          progress = imported;
+          saveProgress();
+          loadProgress();
+          renderTopicChips();
+          renderCard();
+          toast("Прогресс восстановлен");
+        } else {
+          localStorage.setItem("progress_" + srcLang, JSON.stringify(imported));
+          loadProgress();
+          renderTopicChips();
+          renderCard();
+          const langName = (LANGUAGES[srcLang] || {}).name || srcLang;
+          toast("Прогресс уложен в колоду «" + langName + "» — переключись на неё, чтобы увидеть");
+        }
       } catch (err) {
         toast("Ошибка: неверный файл");
       }
