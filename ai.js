@@ -1,24 +1,23 @@
 /* ===== ГЕНЕРАТОР КАРТОЧЕК (Gemini) =====
-   Отдельный слой: transport → prompt → validate → addUserCard */
+   Подключается ПОСЛЕ app.js в index.html.
+   Зависит от app.js: LANGUAGES, CURRENT_LANG, addUserCard, toast */
 
-const AI_MODEL = "gemini-2.0-flash";
-const AI_KEY_STORAGE = "linguaflip_gemini_key";
-const AI_BATCH = 20; // слов за запрос — вписываемся в бесплатные лимиты
+const AI_MODEL = "gemini-3.6-flash";
+const AI_KEY_STORAGE = "linguaflip_gemini_key"; // имя ячейки для ключа
+const AI_BATCH = 20; // слов за один запрос
 
 /* ---------- Транспорт ---------- */
 async function geminiFetch(prompt, apiKey) {
   const url =
     "https://generativelanguage.googleapis.com/v1beta/models/" +
-    AI_MODEL +
-    ":generateContent?key=" +
-    encodeURIComponent(apiKey);
+    AI_MODEL + ":generateContent?key=" + encodeURIComponent(apiKey);
 
   let lastErr = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const resp = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain;charset=UTF-8" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.4, responseMimeType: "application/json" },
@@ -30,7 +29,11 @@ async function geminiFetch(prompt, apiKey) {
         lastErr = new Error("Превышен лимит запросов, пробую ещё раз…");
         continue;
       }
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => null);
+        const hint = err && err.error ? err.error.message : "";
+        throw new Error("HTTP " + resp.status + (hint ? " — " + hint : ""));
+      }
 
       const data = await resp.json();
       const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -45,7 +48,6 @@ async function geminiFetch(prompt, apiKey) {
 }
 
 /* ---------- Валидатор ---------- */
-// та же нормализация, что в поиске дублей — "estás" и "estas" одно слово
 function aiNorm(s) {
   return (s || "").trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -81,10 +83,9 @@ function buildPrompt(words, langName, translateTo) {
   );
 }
 
-/* ---------- Парсер ответа ---------- */
+/* ---------- Парсер ---------- */
 function parseGeminiJson(text) {
   let t = text.trim();
-  // срезаем markdown-заборы, если модель их добавила вопреки запрету
   t = t.replace(/^```(json)?\s*/i, "").replace(/```\s*$/, "");
   return JSON.parse(t);
 }
@@ -98,13 +99,12 @@ async function generateCards() {
   const btn = document.getElementById("ai-generate-btn");
 
   const apiKey = (keyInput.value || "").trim();
-  const words = wordsArea.value
-    .split("\n").map((w) => w.trim()).filter(Boolean);
+  const words = wordsArea.value.split("\n").map((w) => w.trim()).filter(Boolean);
 
   if (!apiKey) { setStatus(statusEl, "Введи API-ключ", "err"); keyInput.focus(); return; }
   if (!words.length) { setStatus(statusEl, "Введи хотя бы одно слово", "err"); wordsArea.focus(); return; }
 
-  const targetLang = langSel.value;
+  const targetLang = langSel ? langSel.value : CURRENT_LANG.code;
   const langName = (LANGUAGES[targetLang] || {}).name || targetLang;
 
   localStorage.setItem(AI_KEY_STORAGE, apiKey);
@@ -117,7 +117,7 @@ async function generateCards() {
 
   try {
     for (let b = 0; b < batches.length; b++) {
-      setStatus(statusEl, `Батч ${b + 1}/${batches.length}: спрашиваю Gemini…`, "working");
+      setStatus(statusEl, "Батч " + (b + 1) + "/" + batches.length + ": спрашиваю Gemini…", "working");
       const raw = await geminiFetch(buildPrompt(batches[b], langName, "русский"), apiKey);
       const cards = parseGeminiJson(raw);
 
@@ -131,7 +131,6 @@ async function generateCards() {
             translation: card.translation,
             example: card.example || "",
             exampleTranslation: card.exampleTranslation || "",
-            topic: data.topic || "my",
           },
           targetLang,
         );
@@ -141,7 +140,7 @@ async function generateCards() {
     }
 
     setStatus(statusEl,
-      `✅ Добавлено: ${report.added}. Дубли: ${report.dup}. Отбраковано: ${report.bad.length}`,
+      "✅ Добавлено: " + report.added + ". Дубли: " + report.dup + ". Отбраковано: " + report.bad.length,
       "ok");
     if (report.bad.length)
       console.warn("Отбракованные карточки:\n" + report.bad.join("\n"));
@@ -166,6 +165,7 @@ const aiLangSelect = document.getElementById("ai-lang");
 const statsModalForAi = document.getElementById("stats-modal");
 
 if (aiLangSelect) {
+  aiLangSelect.innerHTML = ""; // страховка от дублей
   Object.values(LANGUAGES).forEach((l) => {
     const opt = document.createElement("option");
     opt.value = l.code;
@@ -175,10 +175,9 @@ if (aiLangSelect) {
   aiLangSelect.value = CURRENT_LANG.code;
 }
 
-// ключ подтягивается из localStorage
+const aiKeyInput = document.getElementById("ai-api-key");
 const savedKey = localStorage.getItem(AI_KEY_STORAGE);
-const keyInput = document.getElementById("ai-api-key");
-if (keyInput && savedKey) keyInput.value = savedKey;
+if (aiKeyInput && savedKey) aiKeyInput.value = savedKey;
 
 if (aiBtnModal && statsModalForAi && aiModal) {
   aiBtnModal.addEventListener("click", () => {
