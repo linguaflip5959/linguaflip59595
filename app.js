@@ -908,8 +908,15 @@ function updateCardContent() {
     sActions.style.display = "none";
   }
 
-  document.getElementById("card-example").innerHTML = c.example;
-  document.getElementById("card-example-ru").textContent = c.exampleTranslation;
+  // В конструкторе на обороте — фраза из банка, иначе — пример карточки
+  const ex = isConstructorMode && window.CTOR_SENT
+    ? window.CTOR_SENT.sentence
+    : c.example;
+  const exRu = isConstructorMode && window.CTOR_SENT
+    ? window.CTOR_SENT.translation
+    : c.exampleTranslation;
+  document.getElementById("card-example").innerHTML = ex || "";
+  document.getElementById("card-example-ru").textContent = exRu || "";
 }
 
 function renderCard() {
@@ -933,7 +940,11 @@ cardEl.addEventListener("click", (e) => {
 
   if (e.target.closest("#card-example")) {
     e.stopPropagation();
-    if (filteredCards[cardIdx]) speak(filteredCards[cardIdx].example);
+    const c = filteredCards[cardIdx];
+    const src = (isConstructorMode && window.CTOR_SENT && window.CTOR_SENT.sentence)
+      ? window.CTOR_SENT.sentence
+      : (c ? c.example : "");
+    if (src) speak(src);
     return;
   }
 
@@ -1263,16 +1274,22 @@ function setupConstructor(card) {
   answerBox.className = "constructor-answer";
   chipsBox.innerHTML = "";
 
+  // Приоритет: банк ИИ-фраз → пример карточки → выход
+  const s = typeof getConstructorSentence === "function"
+    ? getConstructorSentence(card)
+    : null;
+  window.CTOR_SENT = s; // фраза этой карточки — для проверки и оборота
+
   const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = card.example;
+  tempDiv.innerHTML = s ? s.sentence : "";
   const cleanText = tempDiv.textContent.replace(/[.,!?]/g, "");
   const words = cleanText.split(/\s+/).filter((w) => w.length > 0);
-  if (!words.length) { // у карточки нет примера — собирать фразу не из чего
+
+  if (!words.length) {
     if (hintBox) hintBox.innerHTML = "";
-      return;
+    return;
   }
 
-  // Динамически генерируем правило для плашки
   if (hintBox) {
     const hintWords = words.map((w) => {
       const type = getWordType(w);
@@ -1288,14 +1305,13 @@ function setupConstructor(card) {
   else if (currentLevel === "B1") distractorCount = 4;
 
   const distractors = [];
-  const pool = allCards.filter((c) => c.word !== card.word);
+  const pool = allCards.concat(userCards).filter((c) => c.word !== card.word);
   for (let i = 0; i < distractorCount; i++) {
     const randCard = pool[Math.floor(Math.random() * pool.length)];
     if (randCard) distractors.push(randCard.word);
   }
 
   const allWords = [...words, ...distractors];
-
   for (let i = allWords.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
@@ -1305,27 +1321,20 @@ function setupConstructor(card) {
     const chip = document.createElement("div");
     chip.className = "c-chip";
     chip.textContent = word;
-
     if (currentLevel === "A1" || currentLevel === "A2") {
       const type = getWordType(word);
       if (type !== "distractor") chip.classList.add(`pos-${type}`);
     }
-
     chip.addEventListener("click", () => {
       if (chip.classList.contains("used")) return;
-
       const ansChip = document.createElement("div");
-      ansChip.className =
-        "c-chip " +
-        Array.from(chip.classList)
-          .filter((c) => c.startsWith("pos-"))
-          .join(" ");
+      ansChip.className = "c-chip " +
+        Array.from(chip.classList).filter((c) => c.startsWith("pos-")).join(" ");
       ansChip.textContent = word;
       ansChip.addEventListener("click", () => {
         ansChip.remove();
         chip.classList.remove("used");
       });
-
       answerBox.appendChild(ansChip);
       chip.classList.add("used");
     });
@@ -1338,27 +1347,24 @@ document
   .addEventListener("click", (e) => {
     e.stopPropagation();
     if (isAnimating) return;
-    const c = filteredCards[cardIdx];
-    const editBtn = document.getElementById("card-edit-btn");
-    if (editBtn) editBtn.classList.toggle("visible", !!c && c.topic === "my");
     const answerBox = document.getElementById("constructor-answer");
-    const userWords = Array.from(answerBox.children).map(
-      (el) => el.textContent,
-    );
+    const userWords = Array.from(answerBox.children).map((el) => el.textContent);
     const userSentence = userWords.join(" ").toLowerCase();
 
+    // Эталон — та же фраза, что собиралась (банк или пример)
+    const src =
+      window.CTOR_SENT && window.CTOR_SENT.sentence
+        ? window.CTOR_SENT.sentence
+        : (filteredCards[cardIdx] || {}).example || "";
+
     const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = c.example;
-    const correctText = tempDiv.textContent
-      .replace(/[.,!?]/g, "")
-      .toLowerCase();
+    tempDiv.innerHTML = src;
+    const correctText = tempDiv.textContent.replace(/[.,!?]/g, "").toLowerCase();
 
     if (userSentence === correctText) {
       vibrate(15);
       answerBox.classList.add("correct");
       answerBox.classList.remove("incorrect");
-
-      // Подсветка слов по частям речи при правильном ответе
       Array.from(answerBox.children).forEach((ansChip) => {
         const wordType = getWordType(ansChip.textContent);
         ansChip.classList.add(`pos-${wordType}`);
@@ -1370,7 +1376,7 @@ document
 
     setTimeout(() => {
       cardEl.classList.add("flipped");
-      speak(c.example);
+      speak(src);
     }, 600);
   });
 

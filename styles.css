@@ -583,3 +583,16 @@ html.dark #theme-toggle-modal .icon-moon { display: none; }
 .ai-status.working { color: var(--accent); }
 .ai-status.ok { color: var(--ok); }
 .ai-status.err { color: var(--err); }
+
+/* ===== ГЕНЕРАТОР: плавающая кнопка + банк фраз ===== */
+.ai-fab {
+  position: fixed;
+  top: 66px;
+  right: 20px;
+  z-index: 60;
+  background: var(--paper);
+  box-shadow: 0 4px 10px -3px var(--shadow-color-1);
+  color: var(--accent);
+}
+.ai-sep { border: none; border-top: 1px solid var(--line); margin: 16px 0 4px; }
+#ai-bank-btn { background: var(--bg2); color: var(--ink); margin-top: 12px; }

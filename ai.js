@@ -196,3 +196,164 @@ if (aiGenerateBtn) {
 }
 
 console.log("ai.js подключён: генератор карточек готов");
+
+/* ===== ПЛАВАЮЩАЯ КНОПКА + БАНК ПРЕДЛОЖЕНИЙ ===== */
+
+// --- Звёздочка на экране ---
+const aiFab = document.getElementById("ai-fab");
+if (aiFab && aiModal) {
+  aiFab.addEventListener("click", () => {
+    if (aiLangSelect) aiLangSelect.value = CURRENT_LANG.code;
+    updateBankStatus();
+    aiModal.classList.add("show");
+  });
+}
+
+// --- Хранилище: linguaflip_sentences_<lang> = { "perro": [{sentence, translation}, ...] } ---
+function loadSentenceBank() {
+  try {
+    return JSON.parse(
+      localStorage.getItem("linguaflip_sentences_" + CURRENT_LANG.code) || "{}"
+    );
+  } catch (e) { return {}; }
+}
+
+function saveSentenceBank(bank) {
+  localStorage.setItem(
+    "linguaflip_sentences_" + CURRENT_LANG.code,
+    JSON.stringify(bank)
+  );
+}
+
+function aiStrip(html) {
+  const d = document.createElement("div");
+  d.innerHTML = html || "";
+  return d.textContent || "";
+}
+
+// Топливо банка — выученные слова текущей колоды (SRS box >= 2)
+function getLearnedWords() {
+  loadUserCards();
+  const deck = allCards.concat(userCards);
+  return deck
+    .filter((c) => progress.marks[c.word] && progress.marks[c.word].box > 1)
+    .map((c) => c.word);
+}
+
+// Выбор фразы: банк → пример карточки → null
+function getConstructorSentence(card) {
+  const bank = loadSentenceBank();
+  const arr = bank[aiNorm(card.word)];
+  if (arr && arr.length) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+  if (card.example && card.example.trim()) {
+    return { sentence: card.example, translation: card.exampleTranslation };
+  }
+  return null;
+}
+
+function bankBuildPrompt(words, langName) {
+  return (
+    "Ты — преподаватель языка, составляешь упражнение на порядок слов. " +
+    "Язык: " + langName + ". Для каждого слова придумай ТРИ разных простых " +
+    "предложения уровня A1-A2 (4-7 слов), содержащих это слово. " +
+    "Ответ — строго JSON-массив без markdown и пояснений:\n" +
+    '[{"word":"слово","sentences":[{"sentence":"El <b>perro</b> ladra.","translation":"Собака лает."},{"sentence":"...","translation":"..."},{"sentence":"...","translation":"..."}]}]\n' +
+    "Целевое слово оборачивай в <b></b>. Перевод предложения — на русском.\n" +
+    "Слова:\n" + words.join("\n")
+  );
+}
+
+// Антигаллюцинация: в предложении обязано быть целевое слово
+function validSentence(word, s) {
+  if (!s || !s.sentence || !s.translation) return false;
+  const clean = aiStrip(s.sentence).toLowerCase().replace(/[.,!?;:]/g, "");
+  return clean.split(/\s+/).some((w) => aiNorm(w) === aiNorm(word));
+}
+
+async function buildSentenceBank() {
+  const statusEl = document.getElementById("ai-bank-status");
+  const btn = document.getElementById("ai-bank-btn");
+  const keyInput = document.getElementById("ai-api-key");
+
+  const apiKey = ((keyInput && keyInput.value) ||
+    localStorage.getItem(AI_KEY_STORAGE) || "").trim();
+  if (!apiKey) {
+    if (statusEl) { statusEl.textContent = "Введи API-ключ в поле выше"; statusEl.className = "ai-status err"; }
+    return;
+  }
+  localStorage.setItem(AI_KEY_STORAGE, apiKey);
+
+  const bank = loadSentenceBank();
+  const learned = getLearnedWords();
+  if (!learned.length) {
+    if (statusEl) {
+      statusEl.textContent = "Банк кормится выученными словами (SRS box ≥ 2) — сначала поучи";
+      statusEl.className = "ai-status err";
+    }
+    return;
+  }
+
+  const todo = learned.filter((w) => !bank[aiNorm(w)]);
+  if (!todo.length) {
+    if (statusEl) {
+      statusEl.textContent = "Всё выученное уже в банке: " + Object.keys(bank).length + " слов";
+      statusEl.className = "ai-status ok";
+    }
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  const langName = (LANGUAGES[CURRENT_LANG.code] || {}).name || CURRENT_LANG.code;
+  const BATCH = 10;
+  const batches = [];
+  for (let i = 0; i < todo.length; i += BATCH)
+    batches.push(todo.slice(i, i + BATCH));
+
+  let addedWords = 0, skipped = 0;
+  try {
+    for (let b = 0; b < batches.length; b++) {
+      if (statusEl) {
+        statusEl.textContent = "Батч " + (b + 1) + "/" + batches.length + ": сочиняю фразы…";
+        statusEl.className = "ai-status working";
+      }
+      const raw = await geminiFetch(bankBuildPrompt(batches[b], langName), apiKey);
+      const items = parseGeminiJson(raw);
+
+      (Array.isArray(items) ? items : []).forEach((item) => {
+        const word = ((item && item.word) || "").trim();
+        const sentences = item && Array.isArray(item.sentences) ? item.sentences : [];
+        const good = sentences.filter((s) => validSentence(word, s)).slice(0, 3);
+        if (!word || !good.length) { skipped++; return; }
+        bank[aiNorm(word)] = good;
+        addedWords++;
+      });
+      saveSentenceBank(bank); // после каждого батча — сбой не съест накопленное
+    }
+    if (statusEl) {
+      statusEl.textContent = "✅ Банк: +" + addedWords + " слов" +
+        (skipped ? ", отбраковано: " + skipped : "") +
+        ". Всего: " + Object.keys(bank).length;
+      statusEl.className = "ai-status ok";
+    }
+  } catch (e) {
+    if (statusEl) { statusEl.textContent = "❌ " + e.message; statusEl.className = "ai-status err"; }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function updateBankStatus() {
+  const el = document.getElementById("ai-bank-status");
+  if (!el) return;
+  const bank = loadSentenceBank();
+  const learned = getLearnedWords().length;
+  el.textContent = "Банк: " + Object.keys(bank).length + " слов · Выучено: " + learned;
+  el.className = "ai-status";
+}
+
+const aiBankBtn = document.getElementById("ai-bank-btn");
+if (aiBankBtn) {
+  aiBankBtn.addEventListener("click", buildSentenceBank);
+}
