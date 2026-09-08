@@ -599,3 +599,19 @@ html.dark #theme-toggle-modal .icon-moon { display: none; }
 }
 .ai-sep { border: none; border-top: 1px solid var(--line); margin: 16px 0 4px; }
 #ai-bank-btn { background: var(--bg2); color: var(--ink); margin-top: 12px; }
+
+/* ===== HEATMAP ===== */
+.heatmap-wrap { margin-bottom: 16px; }
+.heatmap { display: flex; gap: 3px; justify-content: center; flex-wrap: nowrap; overflow-x: auto; padding: 4px 0; }
+.heatmap .col { display: flex; flex-direction: column; gap: 3px; }
+.heatmap .cell { width: 11px; height: 11px; border-radius: 3px; background: var(--bg2); border: 1px solid var(--line); }
+.heatmap .cell.l1 { background: rgba(194, 65, 12, .25); border-color: transparent; }
+.heatmap .cell.l2 { background: rgba(194, 65, 12, .45); border-color: transparent; }
+.heatmap .cell.l3 { background: rgba(194, 65, 12, .7); border-color: transparent; }
+.heatmap .cell.l4 { background: var(--accent); border-color: transparent; }
+
+#cloze-toggle.active {
+  background: var(--ok);
+  color: #fff;
+  border-color: var(--ok);
+}

@@ -355,7 +355,7 @@ const LANG_ES = {
     {topic:"animals",word:"ciervo",transcription:"[ˈsjeɾ.βo]",translation:"олень",example:"El ciervo vive en el bosque.",exampleTranslation:"Олень живёт в лесу."},
     {topic:"animals",word:"pingüino",transcription:"[piŋˈɡwi.no]",translation:"пингвин",example:"El pingüino vive en el frío.",exampleTranslation:"Пингвин живёт в холоде."},
     {topic:"animals",word:"canguro",transcription:"[kaŋˈɡu.ɾo]",translation:"кенгуру",example:"El canguro salta mucho.",exampleTranslation:"Кенгуру много прыгает."},
-    {topic:"animals",word:"p Panda",transcription:"[ˈpan.da]",translation:"панда",example:"El panda come bambú.",exampleTranslation:"Панда ест бамбук."},
+    {topic:"animals",word:"Panda",transcription:"[ˈpan.da]",translation:"панда",example:"El panda come bambú.",exampleTranslation:"Панда ест бамбук."},
     {topic:"animals",word:"flamenco",transcription:"[flaˈmeŋ.ko]",translation:"фламинго",example:"El flamenco es rosa.",exampleTranslation:"Фламинго розовый."},
     {topic:"animals",word:"pulpo",transcription:"[ˈpul.po]",translation:"осьминог",example:"El pulpo tiene ocho brazos.",exampleTranslation:"У осьминога восемь ног."},
     {topic:"animals",word:"cangrejo",transcription:"[kaŋˈɡɾe.xo]",translation:"краб",example:"El cangrejo camina de lado.",exampleTranslation:"Краб ходит боком."},

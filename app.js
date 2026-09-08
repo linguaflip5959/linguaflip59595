@@ -17,6 +17,7 @@ let cardIdx = 0;
 let isAnimating = false;
 let isPracticeMode = false;
 let isConstructorMode = false;
+let isClozeMode = false;
 let currentLevel = "A1";
 
 // Тактильный отклик (если поддерживается)
@@ -444,18 +445,75 @@ function updateStatsModal() {
     if (progress.marks[word].box > 1) knownWords++;
   }
   document.getElementById('stat-known').textContent = knownWords;
-  
-  // Подсчет слов за сегодня
+
   const today = new Date().toDateString();
-  let todayCount = 0;
   if (progress.lastStudyDate === today) {
-    todayCount = progress.todayCount || 0;
+    progress.todayCount = progress.todayCount || 0;
   } else {
     progress.lastStudyDate = today;
     progress.todayCount = 0;
     saveProgress();
   }
-  document.getElementById('stat-today').textContent = todayCount;
+  document.getElementById('stat-today').textContent = progress.todayCount;
+
+  // Heatmap-история: { "2026-09-08": 12, ... }
+  if (!progress.history) progress.history = {};
+  renderHeatmap();
+}
+
+function localDateKey(d) {
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return d.getFullYear() + "-" + m + "-" + day;
+}
+
+function noteStudied() {
+  progress.history = progress.history || {};
+  const k = localDateKey(new Date());
+  progress.history[k] = (progress.history[k] || 0) + 1;
+}
+
+function renderHeatmap() {
+  const hm = document.getElementById("heatmap");
+  const title = document.getElementById("heatmap-title");
+  if (!hm) return;
+
+  const days = 84;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let streak = 0;
+  const d = new Date(today);
+  while (progress.history && progress.history[localDateKey(d)]) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+
+  const cells = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const day = new Date(today);
+    day.setDate(day.getDate() - i);
+    const k = localDateKey(day);
+    const n = (progress.history && progress.history[k]) || 0;
+    const lvl = n === 0 ? "" : n < 5 ? "l1" : n < 10 ? "l2" : n < 20 ? "l3" : "l4";
+    cells.push({ k, n, lvl });
+  }
+
+  let html = "";
+  for (let c = 0; c < cells.length; c += 7) {
+    html += '<div class="col">';
+    for (let r = 0; r < 7 && c + r < cells.length; r++) {
+      const cell = cells[c + r];
+      html += `<div class="cell ${cell.lvl}" title="${cell.k}: ${cell.n}"></div>`;
+    }
+    html += "</div>";
+  }
+  hm.innerHTML = html;
+  if (title) {
+    title.textContent = streak > 0
+      ? "🔥 Стрик: " + streak + " дн. подряд"
+      : "Учись сегодня — начнётся стрик 🔥";
+  }
 }
 
 /* ===== МОИ СЛОВА: хранилище + CRUD (самодостаточный блок) ===== */
@@ -850,7 +908,57 @@ function updateCardContent() {
   const transBack = document.getElementById("card-trans-back");
   const hint = document.getElementById("card-hint");
 
-  if (isConstructorMode) {
+  if (isClozeMode) {
+    frontTag.textContent = "Вставь слово";
+    document.getElementById("card-word").textContent = c.translation;
+    document.getElementById("card-trans").style.display = "none";
+    pInput.style.display = "block";
+    pInput.value = "";
+    pInput.classList.remove("correct", "incorrect", "almost");
+    pBtn.style.display = "block";
+    pBtn.textContent = "Проверить";
+    cUi.style.display = "none";
+    cBtn.style.display = "none";
+    hint.style.display = "none";
+
+    // пропускаем слова без примера
+    if (!c.example || !c.example.trim()) {
+      let tries = 0;
+      let found = false;
+      while (tries < filteredCards.length) {
+        cardIdx = (cardIdx + 1) % filteredCards.length;
+        const nc = filteredCards[cardIdx];
+        if (nc && nc.example && nc.example.trim()) { found = true; break; }
+        tries++;
+      }
+      if (!found) { showSessionComplete(); return; }
+      return updateCardContent(); // перерисуемся на слове с примером
+    }
+
+    // собираем фразу с пропуском
+    const clean = stripHtml(c.example);
+    const re = new RegExp("\\b" + c.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+    const gapText = clean.replace(re, "␣␣␣␣␣␣");
+    document.getElementById("card-translation").textContent = c.word;
+    document.getElementById("card-trans").textContent = c.transcription;
+    transBack.style.display = "none";
+    bActions.style.display = "none";
+    sActions.style.display = "flex";
+    // фразу с пропуском показываем прямо на лицевой стороне — в поле примера
+    document.getElementById("card-example").innerHTML = "";
+    document.getElementById("card-example-ru").textContent = "";
+    // запомним для проверки
+    window.CLOZE_WORD = c.word;
+    window.CLOZE_SENT = clean;
+    // рендер фразы на лице: используем слово-контейнер
+    document.getElementById("card-word").textContent = c.translation; // русский сверху
+    document.getElementById("card-hint").style.display = "none";
+    // показываем фразу с пропуском в блоке под словом
+    const phraseEl = document.getElementById("card-trans");
+    phraseEl.style.display = "block";
+    phraseEl.textContent = gapText;
+    hint.style.display = "none";
+  } else if (isConstructorMode) {
     frontTag.textContent = "Собери фразу";
     document.getElementById("card-word").textContent = c.translation;
     document.getElementById("card-trans").style.display = "none";
@@ -952,6 +1060,7 @@ cardEl.addEventListener("click", (e) => {
 
   if (isConstructorMode && !cardEl.classList.contains("flipped")) return;
   if (isPracticeMode && !cardEl.classList.contains("flipped")) return;
+  if (isClozeMode && !cardEl.classList.contains("flipped")) return;
 
   if (
     e.target.closest(".action-btn") ||
@@ -1047,6 +1156,7 @@ document.getElementById("practice-btn").addEventListener("click", (e) => {
   if (isAnimating) return;
   const c = filteredCards[cardIdx];
   const input = document.getElementById("practice-input");
+  input.blur(); // фокус с невидимого поля — и клавиатура на телефоне прячется
   const result = compareAnswers(input.value, c.word);
   if (e.key === "Enter" || e.keyCode === 13) {
     input.blur(); // прячем клавиатуру на телефоне, чтобы видеть переворот
@@ -1098,10 +1208,13 @@ function handleMark(status) {
     const today = new Date().toDateString();
     if (progress.lastStudyDate === today) {
       progress.todayCount = (progress.todayCount || 0) + 1;
+      const d = new Date().toISOString().slice(0, 10);
+      progress.history = progress.history || {};
     } else {
       progress.lastStudyDate = today;
       progress.todayCount = 1;
-    }
+    } 
+    noteStudied();
   } else {
     progress.stats.incorrect++;
     mark.box = 1; // Сброс в 1-ю коробку
@@ -1159,10 +1272,13 @@ function handleSrs(grade) {
     const todaySrs = new Date().toDateString();
     if (progress.lastStudyDate === todaySrs) {
       progress.todayCount = (progress.todayCount || 0) + 1;
+      const d = new Date().toISOString().slice(0, 10);
+      progress.history = progress.history || {};
     } else {
       progress.lastStudyDate = todaySrs;
       progress.todayCount = 1;
     }
+     noteStudied();
   }
 
   mark.box = newBox;
@@ -1220,10 +1336,10 @@ cardEl.addEventListener(
     )
       return;
 
-    if (
-      (isPracticeMode || isConstructorMode) &&
-      !cardEl.classList.contains("flipped")
-    )
+      if (
+        (isPracticeMode || isConstructorMode || isClozeMode) &&
+        !cardEl.classList.contains("flipped")
+      )
       return;
 
     const dx = e.changedTouches[0].clientX - touchStartX;
@@ -1393,6 +1509,18 @@ document.getElementById("constructor-toggle").addEventListener("click", () => {
   renderCard();
   saveProgress();
   toast(isConstructorMode ? "Конструктор фраз включен" : "Обычный режим");
+});
+
+document.getElementById("cloze-toggle").addEventListener("click", () => {
+  isClozeMode = !isClozeMode;
+  if (isClozeMode) { isPracticeMode = false; isConstructorMode = false; }
+  document.getElementById("cloze-toggle").classList.toggle("active", isClozeMode);
+  document.getElementById("reverse-toggle").classList.remove("active");
+  document.getElementById("constructor-toggle").classList.remove("active");
+  cardIdx = 0;
+  renderCard();
+  saveProgress();
+  toast(isClozeMode ? "Cloze: вставь пропущенное слово" : "Обычный режим");
 });
 
 document.getElementById("level-btn").addEventListener("click", () => {
@@ -2144,4 +2272,41 @@ document.addEventListener("keydown", (e) => {
     if (m) m.classList.remove("show");
   });
   if (typeof editingWord !== "undefined" && editingWord !== null) editingWord = null;
+});
+
+/* ===== ГОРЯЧИЕ КЛАВИШИ ===== */
+document.addEventListener("keydown", (e) => {
+  // в полях ввода горячие клавиши не работают — там своя жизнь
+  if (e.target.matches("input, select, textarea")) return;
+  if (document.querySelector(".modal-overlay.show")) return; // модалки рулят сами (Esc)
+
+  switch (e.key) {
+    case " ": // пробел — переворот
+      e.preventDefault();
+      if (!isAnimating) cardEl.classList.toggle("flipped");
+      break;
+    case "ArrowRight":
+      e.preventDefault();
+      if (!isAnimating && cardIdx < filteredCards.length - 1) {
+        cardIdx++; renderCard(); saveProgress();
+      }
+      break;
+    case "ArrowLeft":
+      e.preventDefault();
+      if (!isAnimating && cardIdx > 0) {
+        cardIdx--; renderCard(); saveProgress();
+      }
+      break;
+    case "1": case "2": case "3": case "4": // оценки SRS
+      if (cardEl.classList.contains("flipped")) {
+        const btn = document.querySelector(`.srs-btn[data-grade="${e.key}"]`);
+        if (btn) btn.click();
+      }
+      break;
+    case "Enter":
+      if (!isPracticeMode && !isConstructorMode && !isClozeMode && !isAnimating) {
+        handleMark("known");
+      }
+      break;
+  }
 });
