@@ -1884,13 +1884,13 @@ if (donateModalClose) {
 
 /* ===== STATS MODAL (Safety Check) ===== */
 const statsModal = document.getElementById('stats-modal');
+const settingsModal = document.getElementById('settings-modal');
 const menuBtn = document.getElementById('menu-btn');
 const statsModalClose = document.getElementById('stats-modal-close');
 
 if (menuBtn && statsModal) {
-  menuBtn.addEventListener('click', () => {
-    updateStatsModal();
-    statsModal.classList.add('show');
+    menuBtn.addEventListener('click', () => {
+    settingsModal.classList.add('show');
   });
 }
 
@@ -2013,7 +2013,7 @@ const fileInput = document.getElementById('file-input');
 
 if (loadBtnModal && statsModal && fileInput) {
   loadBtnModal.addEventListener('click', () => {
-    statsModal.classList.remove('show');
+    settingsModal.classList.remove('show')
     setTimeout(() => fileInput.click(), 300);
   });
 }
@@ -2264,7 +2264,7 @@ if (cardEditBtn) {
 
 /* Esc = закрыть любую открытую модалку */
 const ALL_MODALS = ["stats-modal", "gift-modal", "donate-modal", "confirm-modal",
-  "addword-modal", "ai-modal", "celebration-overlay"];
+  "addword-modal", "ai-modal", "celebration-overlay", "settings-modal"];
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   ALL_MODALS.forEach((id) => {
@@ -2310,3 +2310,31 @@ document.addEventListener("keydown", (e) => {
       break;
   }
 });
+
+/* ===== БОКОВАЯ НАВИГАЦИЯ ===== */
+const settingsCloseBtn = document.getElementById("settings-modal-close");
+if (settingsCloseBtn) {
+  settingsCloseBtn.addEventListener("click", () => settingsModal.classList.remove("show"));
+}
+
+const statsFabBtn = document.getElementById("stats-fab");
+if (statsFabBtn && statsModal) {
+  statsFabBtn.addEventListener("click", () => {
+    updateStatsModal();
+    statsModal.classList.add("show");
+  });
+}
+
+const giftFabBtn = document.getElementById("gift-fab");
+if (giftFabBtn && giftModal) {
+  giftFabBtn.addEventListener("click", () => {
+    giftCodeInput.value = "";
+    giftModal.classList.add("show");
+    setTimeout(() => giftCodeInput.focus(), 350);
+  });
+}
+
+const addChipBtn = document.getElementById("add-chip");
+if (addChipBtn) {
+  addChipBtn.addEventListener("click", () => openAddWordModal());
+}

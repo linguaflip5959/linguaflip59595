@@ -615,3 +615,23 @@ html.dark #theme-toggle-modal .icon-moon { display: none; }
   color: #fff;
   border-color: var(--ok);
 }
+
+/* ===== БОКОВЫЕ КНОПКИ: статистика и код (слева) ===== */
+.stats-fab, .gift-fab {
+  position: fixed;
+  left: 20px;
+  z-index: 60;
+  background: var(--paper);
+  box-shadow: 0 4px 10px -3px var(--shadow-color-1);
+}
+.stats-fab { top: 20px; color: var(--ink-soft); }
+.gift-fab { top: 66px; color: var(--accent); }
+
+/* шапка уступает место теперь с двух сторон */
+.brand { padding-left: 50px; }
+.header-actions { padding-left: 50px; }
+
+/* ===== ЧИП «+» ===== */
+.chips-wrap { display: flex; gap: 8px; margin: 0 0 12px 0; }
+.chips-wrap .chips-row { flex: 1; min-width: 0; margin: 0; }
+.add-chip { flex: 0 0 auto; border-style: dashed; border-color: var(--accent); color: var(--accent); font-size: 18px; line-height: 1; padding: 7px 13px; }
