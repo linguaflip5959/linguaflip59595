@@ -334,6 +334,9 @@ html.dark #theme-toggle .icon-moon { display: none; }
   width: 90%;
   box-shadow: var(--shadow);
   animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  max-height: 86dvh;             /* никогда не выше 86% экрана */
+  overflow-y: auto;              /* внутренности скроллятся, крестик доступен */
+  -webkit-overflow-scrolling: touch;
 }
 .modal-header {
   position: relative;

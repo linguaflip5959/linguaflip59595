@@ -2133,3 +2133,15 @@ if (cardEditBtn) {
     if (c && c.topic === "my") openAddWordModal(c);
   });
 }
+
+/* Esc = закрыть любую открытую модалку */
+const ALL_MODALS = ["stats-modal", "gift-modal", "donate-modal", "confirm-modal",
+  "addword-modal", "ai-modal", "celebration-overlay"];
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  ALL_MODALS.forEach((id) => {
+    const m = document.getElementById(id);
+    if (m) m.classList.remove("show");
+  });
+  if (typeof editingWord !== "undefined" && editingWord !== null) editingWord = null;
+});

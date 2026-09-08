@@ -1,10 +1,11 @@
-const CACHE_NAME = 'linguaflip-cache-v1.9';
+const CACHE_NAME = 'linguaflip-cache-v1.3';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './effects.css', 
   './app.js',
+  "./ai.js",
   './effects.js',
   './manifest.webmanifest',
   './icon.svg',
